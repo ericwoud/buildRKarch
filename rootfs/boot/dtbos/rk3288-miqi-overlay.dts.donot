@@ -1,0 +1,15 @@
+/dts-v1/;
+/plugin/;
+
+/* This overlay changes the Miqi to the Openhour Chameleon, */
+/* it is now handled in rockchip-write-dtbos script.        */
+/* keep as example how to remove property through this dts. */
+
+&emmc {
+  bus-width = <4>;
+  /* remove from main .dtb as overlay file cannot delete a property */
+  //fdtput /boot/dtbs/rk3288-miqi.dtb -d /mmc@ff0f0000 non-removable
+  cap-sd-highspeed;
+  card-detect-delay = <0xc8>;
+  disable-wp;
+};

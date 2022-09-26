@@ -1,0 +1,20 @@
+[Unit]
+Description=Secure Shell session cleanup V2
+Wants=network.target
+After=network.target hostapd.service
+
+[Service]
+SyslogIdentifier=ssh-fix-reboot
+RemainAfterExit=yes
+Type=oneshot
+TimeoutSec=10
+ExecStart=/bin/true
+ExecStop=bash -c "while [[ $found != F ]]; do found=F ;\
+  for pid in $(pgrep -w -f 'sshd: \\S.*@pts/[0-9]+'); do found=T ;\
+    echo 'Found sshd '$pid'; sending SIGTERM'; kill $pid || true ;\
+  done ;\
+  sleep 0.1 ;\
+done ; exit 0"
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# NO linux-armv7-headers
+
+gnome=$(pacman -Sgq gnome | grep -v gnome-boxes)
+
+pacman -Syu --needed --noconfirm $gnome \
+xorg linux-armv7-headers linux-api-headers \
+base-devel git asp gtk-doc gobject-introspection meson python-tappy cmake \
+amf-headers avisynthplus clang ladspa nasm libudev0-shim bc go inetutils \
+afpfs-ng doxygen glew gperf java-runtime libaacs libcec-rpi mariadb-libs \
+libmicrohttpd libmpeg2 lirc python-pycryptodomex python-pillow python-pybluez \
+python-simplejson shairplay tinyxml swig rapidjson gtest graphviz \
+wayland-protocols waylandpp xf86-video-armsoc-rockchip mesa mesa-utils \
+libva-vdpau-driver \
+kodi-ext-git kodi-ext-git-dev kodi-ext-git-eventclients kodi-ext-git-tools-texturepacker \
+fstrcmp kodi-standalone-service-git libcrossguid-git libudfread-git
+
+[[ $? != 0 ]] && exit
+
+pacman -Rdd --noconfirm ffmpeg
+pacman -S --noconfirm ffmpeg-v4l2-request-git
+
+# libva-vdpau-driver for kodi build
+
+# set makepkg MAKEFLAGS to -j{nr of cpus}
+sed -i "s/.*#.*MAKEFLAGS.*/MAKEFLAGS=\"-j$(grep ^processor /proc/cpuinfo  | wc -l)\"/" \
+     /etc/makepkg.conf
+
+# graphene is custom build with neon diabled. gdm will crash otherwise.
+
+#systemctl reenable gdm
+
+# Disable suspend at login screen and for all users
+for user in gdm /home/*; do
+  sudo -u $(basename $user) dbus-launch --exit-with-session gsettings set \
+    org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type nothing
+   #org.gnome.desktop.session idle-delay 0    for disabling screen blank
+done
+

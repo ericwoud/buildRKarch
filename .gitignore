@@ -1,0 +1,11 @@
+/src/
+/tools/arch-*.sh
+/override.sh
+/*.diff
+/*.deb
+/*.img*
+/*.tar*
+/*.bin
+/*.log
+
+
