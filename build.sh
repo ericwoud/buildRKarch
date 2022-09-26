@@ -279,7 +279,7 @@ fi
 
 exit
 
-# sudo dd if=/dev/zero of=~/miqi-sdmmc.img bs=1M count=2336 status=progress
+# sudo dd if=/dev/zero of=~/miqi-sdmmc.img bs=16M count=480 status=progress
 # sudo udisksctl loop-setup -f ~/miqi-sdmmc.img
 # ./build.sh -lSD
 # ./build.sh -r

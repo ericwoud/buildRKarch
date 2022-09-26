@@ -1,4 +1,4 @@
-# buildR64arch
+# buildRKarch
 
 Install a minimal Arch-Linux on Rockchip devices from scratch. Now I started only for RK-3288 devices.
 
@@ -13,6 +13,9 @@ The script can be run from Arch Linux and Debian/Ubuntu.
 
 The script only formats the SD card and installs packages and configures them. Nothing needs to be build.
 Everything that is build, is installed with prebuild packages. These packages can be updated through the AUR.
+
+The script installs a version of ffmpeg that supports HW decoding on RockChip devices, using only mainline kernel.
+It is build from the same source as LibreElec's patched ffmpeg for Kodi.
 
 The script is in development and uses sudo. Any bug may possibly delete everything permanently!
 
@@ -50,7 +53,7 @@ Install all necessary packages with:
 ```
 Check your SD card with the following command, write down where the original first partition starts! The script will first show you this info before formatting anything. Set `SD_BLOCK_SIZE_KB` and `SD_ERASE_SIZE_MB` in the script as described there. Don't format a brand new SD card before you find the original erase/block size. It is the best way to determine this.
 
-Change RKDEVICE tyou your device. Following devices are supported:
+Change RKDEVICE to your device. Following devices are supported:
 
 evb firefly miqi openhour phycore popmetal rock-pi-n8 vyasa tinker tinker-s
 
@@ -83,7 +86,14 @@ Now install gnome and kodi including hardware decoding:
 rk3288-postinstall
 ```
 
-
+You can either start gnome with:
+```
+systemctl start gdm
+```
+Or you can start kodi in standalone mode, with ffmpeg HW support (see acknowledgments):
+```
+systemctl start kodi
+```
 After this, you are on your own. It is supposed to be a minimal installation of Arch Linux.
 
 
@@ -100,4 +110,8 @@ Command line options:
 
 * Other variables to tweak also at top of build script.
 
+
+## Acknowledgments
+
+* [Jernej Škrabec's FFmpeg](https://github.com/jernejsk/FFmpeg)
 
