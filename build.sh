@@ -40,7 +40,7 @@ SCRIPT_PACKAGES="wget ca-certificates udisks2 parted gzip bc f2fs-tools"
 SCRIPT_PACKAGES_ARCHLX="base-devel      uboot-tools  ncurses        openssl"
 SCRIPT_PACKAGES_DEBIAN="build-essential u-boot-tools libncurses-dev libssl-dev flex bison "
 
-LC="en_US.utf8"                      # Locale
+LC="en_US.UTF-8"                      # Locale
 TIMEZONE="Europe/Paris"              # Timezone
 USERNAME="user"
 USERPWD="admin"
@@ -162,9 +162,10 @@ function rootfs {
   $schroot ln -sf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
   $sudo sed -i 's/.*PermitRootLogin.*/PermitRootLogin yes/' $rootfsdir/etc/ssh/sshd_config
   $sudo sed -i 's/.*UsePAM.*/UsePAM no/' $rootfsdir/etc/ssh/sshd_config
-  $sudo sed -i '/'$LC'/s/^#//g' $rootfsdir/etc/locale.gen
+  $sudo sed -i '/'$LC'/s/^#//g' $rootfsdir/etc/locale.gen           # Remove leading #
+  $sudo sed -i '/.*'$LC'.*/{x;/^$/!d;g;}' $rootfsdir/etc/locale.gen # Only leave one match
   [ -z $($schroot localectl list-locales | grep --ignore-case $LC) ] && $schroot locale-gen
-  $schroot localectl set-locale LANG=en_US.UTF-8
+  $schroot localectl set-locale LANG=$LC
   $sudo cp -rfv --dereference rootfs/. $rootfsdir
   $sudo chmod 0600 -R $rootfsdir/etc/NetworkManager/system-connections
   $sudo chmod 0700    $rootfsdir/etc/NetworkManager/system-connections
