@@ -14,8 +14,6 @@ TARGET="rk3288"
 RKDEVICE="openhour"
 # evb firefly miqi openhour phycore popmetal rock-pi-n8 tinker tinker vyasa
 
-KERNELDTB="$TARGET-$RKDEVICE"
-
 # https://github.com/bradfa/flashbench.git, running multiple times:
 # sudo ./flashbench -a --count=64 --blocksize=1024 /dev/sda
 # Shows me that times increase at alignment of 8k
@@ -28,10 +26,8 @@ SD_BLOCK_SIZE_KB=8                   # in kilo bytes
 # bc -l <<<"$(cat /sys/block/mmcblk1/queue/discard_granularity) /1024 /1024"
 SD_ERASE_SIZE_MB=4                   # in Mega bytes
 
-SD_BLOCK_SIZE_KB=8                   # in kilo bytes
-SD_ERASE_SIZE_MB=4                   # in Mega bytes
 MINIMAL_SIZE_UBOOT_MB=15             # Minimal size of uboot partition
-SPL_START_KB=32                    # Start of uboot partition
+SPL_START_KB=32                      # Start of uboot partition
 
 ROOTFS_LABEL="${TARGET^^}-ROOT"
 
