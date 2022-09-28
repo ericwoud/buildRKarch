@@ -8,7 +8,7 @@
 &emmc {
   bus-width = <4>;
   /* remove from main .dtb as overlay file cannot delete a property */
-  //fdtput /boot/dtbs/rk3288-miqi.dtb -d /mmc@ff0f0000 non-removable
+  //fdtput -d /mmc@ff0f0000 non-removable
   cap-sd-highspeed;
   card-detect-delay = <0xc8>;
   disable-wp;
