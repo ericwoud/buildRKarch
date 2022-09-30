@@ -1,0 +1,54 @@
+/dts-v1/;
+/plugin/;
+
+&{/} {
+   soundcard-hdmi {
+     compatible = "simple-audio-card";
+     simple-audio-card,format = "i2s";
+     simple-audio-card,name = "DW-I2S-HDMI";
+     simple-audio-card,mclk-fs = <512>;
+     simple-audio-card,codec {
+       sound-dai = <&hdmi>;
+     };
+     simple-audio-card,cpu {
+       sound-dai = <&i2s>;
+     };
+   };
+   soundcard-spdif {
+     compatible = "simple-audio-card";
+     simple-audio-card,name = "SPDIF";
+     simple-audio-card,dai-link@1 {
+       cpu {
+               sound-dai = <&spdif>;
+       };
+       codec {
+               sound-dai = <&spdif_out>;
+       };
+     };
+   };
+   spdif_out: spdif-out {
+     compatible = "linux,spdif-dit";
+     #sound-dai-cells = <0>;
+   };
+};
+
+&hdmi {
+  #address-cells = <1>;
+  #size-cells = <0>;
+  #sound-dai-cells = <0>;
+};
+
+&i2s {
+  #sound-dai-cells = <0>;
+  status = "okay";
+};
+
+&spdif {
+  status = "okay";
+};
+
+// Need this?
+// &hdmi {
+//   pinctrl-names = "default";
+//   pinctrl-0 = <&hdmi_cec_c0>;
+// };
