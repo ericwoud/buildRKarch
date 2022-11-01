@@ -1,9 +1,6 @@
 #!/bin/bash
 
-# rk3288 login[297]: pam_systemd(login:session): Failed to create session: Input/output error
-# Followed by coredump and not being able to log in from tty
-# Same for me. Fix in /etc/pam.d/system-auth by commenting line:
-# #-account [success=1 default=ignore] pam_systemd_home.so
+# PREVENT SUDO FROM TIMEOUT DURING RUNNING OF SCRIPT (FINNISH CANNOT UNMOUNT THEN)
 
 # https://blog.christophersmart.com/2021/11/02/automatically-enable-and-disable-wifi-based-on-ethernet-connection-with-networkmanager/
 
@@ -174,7 +171,8 @@ function rootfs {
   $sudo sed -i '/'$LC'/s/^#//g' $rootfsdir/etc/locale.gen           # Remove leading #
   $sudo sed -i '/.*'$LC'.*/{x;/^$/!d;g;}' $rootfsdir/etc/locale.gen # Only leave one match
   [ -z $($schroot localectl list-locales | grep --ignore-case $LC) ] && $schroot locale-gen
-  $schroot localectl set-locale LANG=$LC
+#  $schroot localectl set-locale LANG=$LC
+  echo "LANG=$LC" | $sudo tee $rootfsdir/etc/locale.conf
   $sudo cp -rfv --dereference rootfs/. $rootfsdir
   $sudo chmod 0600 -R $rootfsdir/etc/NetworkManager/system-connections
   $sudo chmod 0700    $rootfsdir/etc/NetworkManager/system-connections

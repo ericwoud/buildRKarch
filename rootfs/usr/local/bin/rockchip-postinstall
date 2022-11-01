@@ -24,8 +24,8 @@ pacman -S --noconfirm ffmpeg-v4l2-request-git
 # libva-vdpau-driver for kodi build
 
 # set makepkg MAKEFLAGS to -j{nr of cpus}
-sed -i "s/.*#.*MAKEFLAGS.*/MAKEFLAGS=\"-j$(grep ^processor /proc/cpuinfo  | wc -l)\"/" \
-     /etc/makepkg.conf
+#sed -i "s/.*#.*MAKEFLAGS.*/MAKEFLAGS=\"-j$(grep ^processor /proc/cpuinfo  | wc -l)\"/" \
+#     /etc/makepkg.conf
 
 # graphene is custom build with neon diabled. gdm will crash otherwise.
 
