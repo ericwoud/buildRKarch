@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# rk3288 login[297]: pam_systemd(login:session): Failed to create session: Input/output error
+# Followed by coredump and not being able to log in from tty
+# Same for me. Fix in /etc/pam.d/system-auth by commenting line:
+# #-account [success=1 default=ignore] pam_systemd_home.so
+
+# https://blog.christophersmart.com/2021/11/02/automatically-enable-and-disable-wifi-based-on-ethernet-connection-with-networkmanager/
+
 ALARM_MIRROR="http://de.mirror.archlinuxarm.org"
 
 QEMU="https://github.com/multiarch/qemu-user-static/releases/download/v5.2.0-11/x86_64_qemu-arm-static.tar.gz"
@@ -162,6 +169,8 @@ function rootfs {
   $schroot ln -sf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime
   $sudo sed -i 's/.*PermitRootLogin.*/PermitRootLogin yes/' $rootfsdir/etc/ssh/sshd_config
   $sudo sed -i 's/.*UsePAM.*/UsePAM no/' $rootfsdir/etc/ssh/sshd_config
+  # prevent login from tty gets broken:
+  $sudo sed -i '/^-account.*pam_systemd_home.so.*/ s/./#&/' $rootfsdir/etc/pam.d/system-auth
   $sudo sed -i '/'$LC'/s/^#//g' $rootfsdir/etc/locale.gen           # Remove leading #
   $sudo sed -i '/.*'$LC'.*/{x;/^$/!d;g;}' $rootfsdir/etc/locale.gen # Only leave one match
   [ -z $($schroot localectl list-locales | grep --ignore-case $LC) ] && $schroot locale-gen
@@ -175,8 +184,6 @@ function rootfs {
   find -L "rootfs/etc/systemd/system" -name "*.service"| while read service ; do
     $schroot systemctl reenable $(basename $service)
   done
-
-  $sudo cp -vf ./*.pkg.tar.xz $rootfsdir/tmp
 }
 
 function installscript {
@@ -208,9 +215,10 @@ function removescript {
 }
 
 [ $USER = "root" ] && sudo="" || sudo="sudo"
-[[ $# == 0 ]] && args=""|| args=$@
+[[ $# == 0 ]] && args="-c"|| args=$@
 cd $(dirname $BASH_SOURCE)
-while getopts ":ralRSDA" opt $args; do declare "${opt}=true" ; done
+while getopts ":rcpalRSDA" opt $args; do declare "${opt}=true" ; done
+echo OPTIONS: rootfs=$r postinst=$p chroot=$c apt=$a loopdev=$l
 trap finish EXIT
 shopt -s extglob
 $sudo true
@@ -247,7 +255,6 @@ else
   schroot="$sudo unshare --mount --fork --kill-child --pid --root=$rootfsdir"
 fi
 
-echo OPTIONS: rootfs=$r apt=$a
 if [ "$R" = true ] ; then
   echo Removing rootfs...
   $sudo rm -rf $rootfsdir/*
@@ -271,9 +278,12 @@ if [ ! -z $rootfsdir ]; then
   [[ $? != 0 ]] && exit
   $sudo mount --rbind --make-rslave /run  $rootfsdir/run
   [[ $? != 0 ]] && exit
-  [ "$r" = true ] && rootfs || $schroot
+  [ "$r" = true ] && rootfs
+  [ "$p" = true ] && $schroot rockchip-postinstall
+  [ "$c" = true ] && $schroot
 fi
 
+finish
 exit
 
 # sudo dd if=/dev/zero of=~/miqi-sdmmc.img bs=16M count=480 status=progress

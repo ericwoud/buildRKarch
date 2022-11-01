@@ -2,7 +2,7 @@
 
 # NO linux-armv7-headers
 
-gnome=$(pacman -Sgq gnome | grep -v gnome-boxes)
+gnome=$(pacman -Sgq gnome | grep -v gnome-boxes | grep -v gnome-remote-desktop)
 
 pacman -Syu --needed --noconfirm $gnome \
 xorg linux-armv7-headers linux-api-headers \

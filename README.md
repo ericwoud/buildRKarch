@@ -83,8 +83,9 @@ ssh root@192.168.1.5
 
 Now install gnome and kodi including hardware decoding:
 ```
-rk3288-postinstall
+rockchip-postinstall
 ```
+It is also possible to execute rockchip-postinstall from inside the chroot. You could use option `-p` fot this.
 
 You can either start gnome with:
 ```
@@ -104,9 +105,12 @@ Command line options:
 * -a   : Install necessairy packages.
 * -A   : Remove necessairy packages.
 * -SD  : Format SD card
+* -l   : Add this option to `-SD` if you want to format a loop-device
 * -r   : Build RootFS.
+* -p   : Execute rockchip-postinstall from chroot
+* -c   : Execute chroot
 * -R   : Delete RootFS.
-* none : Enter chroot
+* none : Enter chroot, same as option `-c`
 
 * Other variables to tweak also at top of build script.
 
