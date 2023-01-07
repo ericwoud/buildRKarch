@@ -1,6 +1,0 @@
-# Static information about the filesystems.
-# See fstab(5) for details.
-# However, nowadays with systemd, a correct kernel device and fstype in fstab are unncesessary.
-# <file system> <dir> <type> <options> <dump> <pass>
-dummy / auto defaults,noatime,nodiratime 0 1
-

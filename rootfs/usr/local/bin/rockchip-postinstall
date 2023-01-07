@@ -1,33 +1,49 @@
 #!/bin/bash
 
-# NO linux-armv7-headers
-
 gnome=$(pacman -Sgq gnome | grep -v gnome-boxes | grep -v gnome-remote-desktop)
 
 pacman -Syu --needed --noconfirm $gnome \
-xorg linux-armv7-headers linux-api-headers \
+xorg linux-api-headers \
 base-devel git asp gtk-doc gobject-introspection meson python-tappy cmake \
 amf-headers avisynthplus clang ladspa nasm libudev0-shim bc go inetutils \
 afpfs-ng doxygen glew gperf java-runtime libaacs libcec-rpi mariadb-libs \
 libmicrohttpd libmpeg2 lirc python-pycryptodomex python-pillow python-pybluez \
 python-simplejson shairplay tinyxml swig rapidjson gtest graphviz \
-wayland-protocols waylandpp xf86-video-armsoc-rockchip mesa mesa-utils \
-libva-vdpau-driver \
-kodi-ext-git kodi-ext-git-dev kodi-ext-git-eventclients kodi-ext-git-tools-texturepacker \
-fstrcmp kodi-standalone-service-git libcrossguid-git libudfread-git
-
+wayland-protocols waylandpp mesa mesa-utils \
+libva-vdpau-driver
+# libva-vdpau-driver for kodi build
 [[ $? != 0 ]] && exit
 
-pacman -Rdd --noconfirm ffmpeg
-pacman -S --noconfirm ffmpeg-v4l2-request-git
-
-# libva-vdpau-driver for kodi build
+# target = first part of partlabel of root partition
+target=$(lsblk -pilno partlabel,type,mountpoint | grep -G 'part /$' |  head -n1 | cut -d "-" -f1)
+case $target in
+  rk3288)
+    pacman -Syu --needed --noconfirm linux-armv7-headers xf86-video-armsoc-rockchip\
+      kodi-ext-git kodi-ext-git-dev kodi-ext-git-eventclients kodi-ext-git-tools-texturepacker \
+      fstrcmp kodi-standalone-service-git libcrossguid-git libudfread-git
+    [[ $? != 0 ]] && exit
+    pacman -Rdd --noconfirm ffmpeg
+    pacman -S --noconfirm ffmpeg-v4l2-request-git
+    ;;
+  rk3588)
+    pacman -Syu --needed --noconfirm linux-rockchip-rk3588-bin-headers
+    ;;
+esac
 
 # set makepkg MAKEFLAGS to -j{nr of cpus}
 #sed -i "s/.*#.*MAKEFLAGS.*/MAKEFLAGS=\"-j$(grep ^processor /proc/cpuinfo  | wc -l)\"/" \
 #     /etc/makepkg.conf
 
+# About RK3288 graphene package:
 # graphene is custom build with neon diabled. gdm will crash otherwise.
+# Add to PKGBUILD:
+#     -D arm_neon=false \
+# Replace:
+#  git submodule set-url subprojects/mutest "$srcdir/mutest"
+# With:
+#  git config submodule.externals/vendor/mutest.url "$srcdir/mutest"
+#  git -c protocol.file.allow=always submodule update
+
 
 #systemctl reenable gdm
 
@@ -37,4 +53,19 @@ for user in gdm /home/*; do
     org.gnome.settings-daemon.plugins.power sleep-inactive-ac-type nothing
    #org.gnome.desktop.session idle-delay 0    for disabling screen blank
 done
+
+exit
+
+cat <<EOT | tee /var/lib/kodi/.kodi/userdata/keymaps/keymap.xml
+<keymap>
+<global>
+<keyboard>
+<sleep>Suspend</sleep>
+<pageup>ChannelUp</pageup>
+<pagedown>ChannelDown</pagedown>
+</keyboard>
+</global>
+</keymap>
+EOT
+chown kodi:kodi /var/lib/kodi/.kodi/userdata/keymaps/keymap.xml
 

@@ -1,4 +1,5 @@
 /src/
+/pkgs/
 /tools/arch-*.sh
 /override.sh
 /*.diff

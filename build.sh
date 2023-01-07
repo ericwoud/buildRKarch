@@ -1,22 +1,16 @@
 #!/bin/bash
 
-# PREVENT SUDO FROM TIMEOUT DURING RUNNING OF SCRIPT (FINNISH CANNOT UNMOUNT THEN)
-
-# https://blog.christophersmart.com/2021/11/02/automatically-enable-and-disable-wifi-based-on-ethernet-connection-with-networkmanager/
-
-ALARM_MIRROR="http://de.mirror.archlinuxarm.org"
-
-QEMU="https://github.com/multiarch/qemu-user-static/releases/download/v5.2.0-11/x86_64_qemu-arm-static.tar.gz"
-
-ARCHBOOTSTRAP="https://raw.githubusercontent.com/tokland/arch-bootstrap/master/arch-bootstrap.sh"
-
-REPOKEY="BCF574990829687185CC072BD41842407A2A5FA2"
-REPOURL='ftp://ftp.woudstra.mywire.org/repo/$arch'
-BACKUPREPOURL="https://github.com/ericwoud/buildRKarch/releases/download/packages"
-
-TARGET="rk3288"
-RKDEVICE="openhour"
-# evb firefly miqi openhour phycore popmetal rock-pi-n8 tinker tinker vyasa
+# Choose one of the following targets:
+# ----------------
+#TARGET="rk3288"
+#RKDEVICE="openhour"
+# or one of: evb firefly miqi openhour phycore popmetal rock-pi-n8 tinker tinker vyasa
+# ----------------
+TARGET="rk3588"
+RKDEVICE="rock-5b"
+ATFDEVICE="sdmmc"
+#ATFDEVICE="nvme"
+# ----------------
 
 # https://github.com/bradfa/flashbench.git, running multiple times:
 # sudo ./flashbench -a --count=64 --blocksize=1024 /dev/sda
@@ -28,27 +22,63 @@ SD_BLOCK_SIZE_KB=8                   # in kilo bytes
 # Also, once runnig on rk3288 execute:
 # bc -l <<<"$(cat /sys/block/mmcblk1/device/preferred_erase_size) /1024 /1024"
 # bc -l <<<"$(cat /sys/block/mmcblk1/queue/discard_granularity) /1024 /1024"
-SD_ERASE_SIZE_MB=4                   # in Mega bytes
+SD_ERASE_SIZE_MB=4                   # in Mega bytes, align all partitions with this number
 
 MINIMAL_SIZE_UBOOT_MB=15             # Minimal size of uboot partition
 SPL_START_KB=32                      # Start of uboot partition
+MINIMAL_SIZE_BOOT_MB=150             # Minimal size of boot partition
+ROOT_END_MB=100%                     # Size of root partition
+#ROOT_END_MB=$(( 256*1024  ))        # Size 256GiB 
 
-ROOTFS_LABEL="${TARGET^^}-ROOT"
 
-# linux-firmware here?
-NEEDED_PACKAGES="base openssh wireless-regdb iproute2 f2fs-tools dtc mkinitcpio patch sudo"
-NEEDED_PACKAGES+=" linux-armv7 linux-firmware networkmanager"
+case $TARGET in
+  rk3288)
+    INTERFACENAME="end0"
+    PARTLABELROOT="$TARGET-root"
+    PARTLABELBOOT=""
+    PARTLABELUBOOT="$TARGET-${RKDEVICE}-uboot"
+    NEEDED_PACKAGES="linux-armv7"
+    PREBUILT_PACKAGES="$TARGET-uboot"
+    RKARCH="armv7h"
+    FSTABBOOT=""
+    FSTABROOT="PARTLABEL=$PARTLABELROOT /     auto   defaults,noatime,nodiratime 0      1"
+    ;;
+  rk3588)
+    INTERFACENAME="enP4p65s0"
+    PARTLABELROOT="$TARGET@${ATFDEVICE}-root"
+    PARTLABELBOOT="$TARGET@${ATFDEVICE}-boot"
+    PARTLABELUBOOT="$TARGET-${RKDEVICE}@${ATFDEVICE}-uboot"
+    NEEDED_PACKAGES="linux-rockchip-rk3588-bin"
+    PREBUILT_PACKAGES="$TARGET-uboot-git"
+    RKARCH="aarch64"
+    FSTABBOOT="PARTLABEL=$PARTLABELBOOT /boot vfat   defaults                    0      2"
+    FSTABROOT="PARTLABEL=$PARTLABELROOT /     auto   defaults,noatime,nodiratime 0      0"
+    # If the root file system is btrfs or XFS, the fsck order should be set to 0 instead of 1.
+    ;;
+esac  
+NEEDED_PACKAGES+=" base openssh wireless-regdb iproute2 f2fs-tools dtc mkinitcpio patch sudo"
+NEEDED_PACKAGES+=" linux-firmware networkmanager"
 EXTRA_PACKAGES="vim nano screen"
-PREBUILT_PACKAGES="$TARGET-uboot"
-SCRIPT_PACKAGES="wget ca-certificates udisks2 parted gzip bc f2fs-tools"
+SCRIPT_PACKAGES="wget ca-certificates udisks2 parted gzip bc f2fs-tools btrfs-progs dosfstools"
 SCRIPT_PACKAGES_ARCHLX="base-devel      uboot-tools  ncurses        openssl"
-SCRIPT_PACKAGES_DEBIAN="build-essential u-boot-tools libncurses-dev libssl-dev flex bison "
+SCRIPT_PACKAGES_DEBIAN="build-essential u-boot-tools libncurses-dev libssl-dev flex bison"
 
-LC="en_US.UTF-8"                      # Locale
+LC="en_US.UTF-8"                     # Locale
 TIMEZONE="Europe/Paris"              # Timezone
-USERNAME="user"
-USERPWD="admin"
+USERNAME="user"                      # User account name that is created
+USERPWD="admin"                      # User password
 ROOTPWD="admin"                      # Root password
+
+ALARM_MIRROR="http://de.mirror.archlinuxarm.org"
+
+QEMU_ARM="https://github.com/multiarch/qemu-user-static/releases/download/v5.2.0-11/x86_64_qemu-arm-static.tar.gz"
+QEMU_AARCH64="https://github.com/multiarch/qemu-user-static/releases/download/v5.2.0-11/x86_64_qemu-aarch64-static.tar.gz"
+
+ARCHBOOTSTRAP="https://raw.githubusercontent.com/tokland/arch-bootstrap/master/arch-bootstrap.sh"
+
+REPOKEY="DD73724DCA27796790D33E98798137154FE1474C"
+REPOURL='ftp://ftp.woudstra.mywire.org/repo/$arch'
+BACKUPREPOURL="https://github.com/ericwoud/buildRKarch/releases/download/packages"
 
 [ -f "./override.sh" ] && source ./override.sh
 
@@ -72,6 +102,7 @@ function finish {
     echo -e "Done. You can remove the card now.\n"
   fi
   unset rootfsdir
+  [ -v sudoPID ] && kill -TERM $sudoPID
 }
 
 function waitdevlink {
@@ -83,9 +114,8 @@ function waitdevlink {
 
 function formatsd {
   echo ROOTDEV: $rootdev
-  lsblkrootdev=($(lsblk -prno name,pkname,partlabel | grep $rootdev))
-  [ -z $lsblkrootdev ] && exit
-  realrootdev=${lsblkrootdev[1]}
+  realrootdev=$(lsblk -prno pkname $rootdev)
+  [ -z $realrootdev ] && exit
   [ "$l" = true ] && skip="" || skip='\|^loop'
   readarray -t options < <(lsblk --nodeps -no name,serial,size \
                     | grep -v "^"${realrootdev/"/dev/"/}$skip \
@@ -103,40 +133,84 @@ function formatsd {
   echo -e "\nAre you sure you want to format "$device"???"
   read -p "Type <format> to format: " prompt
   [[ $prompt != "format" ]] && exit
-  minimalrootstart=$(( $SPL_START_KB + ($MINIMAL_SIZE_UBOOT_MB * 1024) ))
+  minimalbootstart=$(( $SPL_START_KB + ($MINIMAL_SIZE_UBOOT_MB * 1024) ))
+  bootstart=0
+  while [[ $bootstart -lt $minimalbootstart ]]; do
+    bootstart=$(( $bootstart + ($SD_ERASE_SIZE_MB * 1024) ))
+  done
+  minimalrootstart=$(( $bootstart + ($MINIMAL_SIZE_BOOT_MB * 1024) ))
   rootstart=0
   while [[ $rootstart -lt $minimalrootstart ]]; do
     rootstart=$(( $rootstart + ($SD_ERASE_SIZE_MB * 1024) ))
   done
-  $sudo dd of="${device}" if=/dev/zero bs=1024 count=$rootstart
+  if [[ "$ROOT_END_MB" =~ "%" ]]; then
+    root_end_kb=$ROOT_END_MB
+  else
+    root_end_kb=$(( ($ROOT_END_MB/$SD_ERASE_SIZE_MB*$SD_ERASE_SIZE_MB)*1024))
+    echo $root_end_kb
+  fi
+  case $TARGET in
+    rk3288) formatsd_rk3288 $device ;;
+    rk3588) formatsd_rk3588 $device ;;
+  esac  
+  $sudo sync
+  $sudo lsblk -o name,mountpoint,label,partlabel,size,uuid "${device}"
+}
+
+function formatsd_rk3288 {
+  device=$1
+  $sudo dd of="${device}" if=/dev/zero bs=1024 count=$bootstart
+  $sudo sync
+  $sudo partprobe "${device}"
   $sudo parted -s -- "${device}" unit kiB \
     mklabel gpt \
-    mkpart primary $rootstart 100% \
-    mkpart primary $SPL_START_KB $rootstart \
-    name 1 $TARGET-root \
-    name 2 $TARGET-${RKDEVICE}-uboot \
+    mkpart primary $bootstart $root_end_kb \
+    mkpart primary $SPL_START_KB $bootstart \
+    name 1 $PARTLABELROOT \
+    name 2 $PARTLABELUBOOT \
     print
+  $sudo sync
   $sudo partprobe "${device}"
-  lsblkdev=""
-  waitdevlink "/dev/disk/by-partlabel/$TARGET-root"
-  $sudo blkdiscard -fv "/dev/disk/by-partlabel/$TARGET-root"
-  waitdevlink "/dev/disk/by-partlabel/$TARGET-root"
+  waitdevlink "/dev/disk/by-partlabel/$PARTLABELROOT"
+  $sudo blkdiscard -fv "/dev/disk/by-partlabel/$PARTLABELROOT"
+  waitdevlink "/dev/disk/by-partlabel/$PARTLABELROOT"
   [[ $SD_BLOCK_SIZE_KB -lt 4 ]] && blksize=$SD_BLOCK_SIZE_KB || blksize=4
   stride=$(( $SD_BLOCK_SIZE_KB / $blksize ))
   stripe=$(( ($SD_ERASE_SIZE_MB * 1024) / $SD_BLOCK_SIZE_KB ))
-  $sudo mkfs.ext4 -v -b $(( $blksize * 1024 ))  -L $ROOTFS_LABEL \
-    -E stride=$stride,stripe-width=$stripe "/dev/disk/by-partlabel/$TARGET-root"
+  $sudo mkfs.ext4 -v -b $(( $blksize * 1024 ))  -L "${TARGET^^}-ROOT" \
+    -E stride=$stride,stripe-width=$stripe "/dev/disk/by-partlabel/$PARTLABELROOT"
+}
+
+function formatsd_rk3588 {
+  echo FORMAT OTHER
+  device=$1
+  $sudo dd of="${device}" if=/dev/zero bs=1024 count=$bootstart
   $sudo sync
-  $sudo lsblk -o name,mountpoint,label,size,uuid "${device}"
+  $sudo partprobe "${device}"
+  $sudo parted -s -- "${device}" unit kiB \
+    mklabel gpt \
+    mkpart primary $rootstart $root_end_kb \
+    mkpart primary fat32 $bootstart $rootstart \
+    mkpart primary $SPL_START_KB $bootstart \
+    name 1 $PARTLABELROOT \
+    name 2 $PARTLABELBOOT \
+    name 3 $PARTLABELUBOOT \
+    set 2 boot on \
+    print
+  $sudo sync
+  $sudo partprobe "${device}"
+  waitdevlink "/dev/disk/by-partlabel/$PARTLABELROOT"
+  waitdevlink "/dev/disk/by-partlabel/$PARTLABELBOOT"
+  $sudo mkfs.vfat -n "${TARGET^^}-BOOT" "/dev/disk/by-partlabel/$PARTLABELBOOT"
+  $sudo mkfs.btrfs -f -L "${TARGET^^}-ROOT" "/dev/disk/by-partlabel/$PARTLABELROOT"
 }
 
 function bootstrap {
   if [ ! -d "$rootfsdir/etc" ]; then
     rm -f /tmp/downloads/$(basename $ARCHBOOTSTRAP)
     wget --no-verbose $ARCHBOOTSTRAP --no-clobber -P /tmp/downloads/
-    $sudo bash /tmp/downloads/$(basename $ARCHBOOTSTRAP) -q -a armv7h -r $ALARM_MIRROR $rootfsdir
+    $sudo bash /tmp/downloads/$(basename $ARCHBOOTSTRAP) -q -a $RKARCH -r $ALARM_MIRROR $rootfsdir
     ls $rootfsdir
-    $sudo cp -vf /usr/local/bin/qemu-aarch64-static $rootfsdir/usr/local/bin/qemu-aarch64-static
   fi
 }
 
@@ -155,7 +229,6 @@ function rootfs {
     $sudo sed -i '/^\[core\].*/i'" ${serv}"'' $rootfsdir/etc/pacman.conf
   fi
   $schroot pacman -Syu --needed --noconfirm $NEEDED_PACKAGES $EXTRA_PACKAGES $PREBUILT_PACKAGES
-
   $schroot useradd --create-home --user-group \
                --groups audio,games,log,lp,optical,power,scanner,storage,video,wheel \
                -s /bin/bash $USERNAME
@@ -171,9 +244,13 @@ function rootfs {
   $sudo sed -i '/'$LC'/s/^#//g' $rootfsdir/etc/locale.gen           # Remove leading #
   $sudo sed -i '/.*'$LC'.*/{x;/^$/!d;g;}' $rootfsdir/etc/locale.gen # Only leave one match
   [ -z $($schroot localectl list-locales | grep --ignore-case $LC) ] && $schroot locale-gen
-#  $schroot localectl set-locale LANG=$LC
   echo "LANG=$LC" | $sudo tee $rootfsdir/etc/locale.conf
+  echo "$TARGET" | $sudo tee $rootfsdir/etc/hostname
+  echo -e "# <device> <dir> <type> <options> <dump> <fsck>\n$FSTABROOT\n$FSTABBOOT" | \
+    $sudo tee $rootfsdir/etc/fstab
   $sudo cp -rfv --dereference rootfs/. $rootfsdir
+  $sudo sed -i 's/.*interface-name.*/interface-name='"${INTERFACENAME}"'/' \
+        "$rootfsdir/etc/NetworkManager/system-connections/Wired connection 1.nmconnection"
   $sudo chmod 0600 -R $rootfsdir/etc/NetworkManager/system-connections
   $sudo chmod 0700    $rootfsdir/etc/NetworkManager/system-connections
   $schroot systemctl reenable systemd-timesyncd.service
@@ -184,6 +261,12 @@ function rootfs {
   done
 }
 
+function chrootfs {
+  echo "Entering chroot on image. Enter commands as if running on the target:"
+  echo "Type <exit> to exit from the chroot environment."
+  $schroot
+}
+
 function installscript {
   if [ ! -f "/etc/arch-release" ]; then ### Ubuntu / Debian
     $sudo apt-get install --yes         $SCRIPT_PACKAGES $SCRIPT_PACKAGES_DEBIAN
@@ -192,20 +275,26 @@ function installscript {
   fi
   # On all linux's
   if [ $runontarget != "true" ]; then # Not running on TARGET
-    wget --no-verbose $QEMU          --no-clobber -P ./
-    $sudo tar -xf $(basename $QEMU) -C /usr/local/bin
+    wget --no-verbose $QEMU_ARM          --no-clobber -P ./
+    $sudo tar -xf $(basename $QEMU_ARM) -C /usr/local/bin
+    wget --no-verbose $QEMU_AARCH64          --no-clobber -P ./
+    $sudo tar -xf $(basename $QEMU_AARCH64) -C /usr/local/bin
     S1=':qemu-arm:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x28\x00'
     S2=':\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:/usr/local/bin/qemu-arm-static:CF'
     echo -n $S1$S2| $sudo tee /lib/binfmt.d/05-local-qemu-arm-static.conf
-    echo
+    S1=':qemu-aarch64:M::\x7fELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\xb7'
+    S2=':\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff:/usr/local/bin/qemu-aarch64-static:CF'
+    echo -n $S1$S2| $sudo tee /lib/binfmt.d/05-local-qemu-aarch64-static.conf
     $sudo systemctl restart systemd-binfmt.service
   fi
   exit
 }
 function removescript {
   # On all linux's
-  if [ $bpir64 != "true" ]; then # Not running on BPI-R64
+  if [ $runontarget != "true" ]; then # Not running on TARGET
+    $sudo rm -f /usr/local/bin/qemu-arm-static
     $sudo rm -f /usr/local/bin/qemu-aarch64-static
+    $sudo rm -f /lib/binfmt.d/05-local-qemu-arm-static.conf
     $sudo rm -f /lib/binfmt.d/05-local-qemu-aarch64-static.conf
     $sudo systemctl restart systemd-binfmt.service
   fi
@@ -219,10 +308,17 @@ while getopts ":rcpalRSDA" opt $args; do declare "${opt}=true" ; done
 echo OPTIONS: rootfs=$r postinst=$p chroot=$c apt=$a loopdev=$l
 trap finish EXIT
 shopt -s extglob
-$sudo true
 
-echo "Target device="$RKDEVICE
-if [[ "$(tr -d '\0' 2>/dev/null </proc/device-tree/model)" == *"$TARGET"* ]]; then
+echo -e "Target="$TARGET"\nTargetDevice="$RKDEVICE
+echo -e "Change target in first lines of script if necessairy..."
+
+if [ -n "$sudo" ]; then
+  sudo -v
+  ( while true; do sudo -v; sleep 40; done ) &
+  sudoPID=$!
+fi
+
+if [[ "$(tr -d '\0' 2>/dev/null </proc/device-tree/compatible)" == *"$TARGET"* ]]; then
   echo "Running on $TARGET"
   runontarget="true"
 else
@@ -233,13 +329,12 @@ fi
 [ "$a" = true ] && installscript
 [ "$A" = true ] && removescript
 
-rootdev=$(lsblk -pilno name,type,mountpoint | grep -G 'part /$')
-rootdev=${rootdev%% *}
+rootdev=$(lsblk -pilno name,type,mountpoint | grep -G 'part /$' |  head -n1 | cut -d " " -f1)
 
 if [ "$S" = true ] && [ "$D" = true ]; then formatsd; exit; fi
 
-if [ -L "/dev/disk/by-partlabel/$TARGET-root" ]; then
-  mountdev=$(realpath "/dev/disk/by-partlabel/$TARGET-root")
+if [ -L "/dev/disk/by-partlabel/$PARTLABELROOT" ]; then
+  mountdev=$(realpath "/dev/disk/by-partlabel/$PARTLABELROOT")
 else
   echo "Not inserted! (Maybe not matching the target device on the card)"
   exit
@@ -249,7 +344,7 @@ if [ "$rootdev" == "$mountdev" ];then
   rootfsdir="" ; r="" ; R=""     # Protect root when running from it!
   schroot=""
 else
-  rootfsdir="/mnt/bpirootfs"
+  rootfsdir="/mnt/rkrootfs"
   schroot="$sudo unshare --mount --fork --kill-child --pid --root=$rootfsdir"
 fi
 
@@ -258,7 +353,6 @@ if [ "$R" = true ] ; then
   $sudo rm -rf $rootfsdir/*
   exit
 fi
-echo "SETUP="$SETUP
 echo "Rootfsdir="$rootfsdir
 echo "Mountdev="$mountdev
 
@@ -276,16 +370,20 @@ if [ ! -z $rootfsdir ]; then
   [[ $? != 0 ]] && exit
   $sudo mount --rbind --make-rslave /run  $rootfsdir/run
   [[ $? != 0 ]] && exit
+  if [ -L "/dev/disk/by-partlabel/$PARTLABELBOOT" ]; then
+    $sudo mkdir -p $rootfsdir/boot
+    $sudo mount "/dev/disk/by-partlabel/$PARTLABELBOOT" $rootfsdir/boot
+  fi
   [ "$r" = true ] && rootfs
   [ "$p" = true ] && $schroot rockchip-postinstall
-  [ "$c" = true ] && $schroot
+  [ "$c" = true ] && chrootfs
 fi
 
 finish
 exit
 
-# sudo dd if=/dev/zero of=~/miqi-sdmmc.img bs=16M count=480 status=progress
-# sudo udisksctl loop-setup -f ~/miqi-sdmmc.img
+# sudo dd if=/dev/zero of=~/rock-5b-sdmmc.img bs=16M count=128 status=progress
+# sudo udisksctl loop-setup -f ~/rock-5b-sdmmc.img
 # ./build.sh -lSD
 # ./build.sh -r
 # ./build.sh

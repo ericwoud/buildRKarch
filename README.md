@@ -1,20 +1,22 @@
 # buildRKarch
 
-Install a minimal Arch-Linux on Rockchip devices from scratch. Now I started only for RK-3288 devices.
+Install a minimal Arch-Linux on Rockchip devices from scratch. Now I started only for RK-3288 and RK-3588 devices.
 
-Openhour Chameleon device is added from Miqi files, as I have an OpenHour Chameleon. It is set as default.
+RK-3588 is now the default. Change the first couple of lines of the script (uncomment/comment) to change to RK-3288.
 
-All U-Boot supported devices are supported in this script, but only Miqi is tested!
+Openhour Chameleon device is added from Miqi files, as I have an OpenHour Chameleon.
 
-Now includes a patch so that temperature is regulated at higher degrees!
-Delete the file rootfs/boot/dtbos/rk3288-thermal-overlay.dts before building, if you do not want to.
+All U-Boot supported devices are supported in this script, but only miqi an rock-5b are tested!
 
 The script can be run from Arch Linux and Debian/Ubuntu.
 
 The script only formats the SD card and installs packages and configures them. Nothing needs to be build.
 Everything that is build, is installed with prebuild packages. These packages can be updated through the AUR.
 
-The script installs a version of ffmpeg that supports HW decoding on RockChip devices, using only mainline kernel.
+RK3288: Now includes a patch so that temperature is regulated at higher degrees!
+Delete the file rootfs/boot/dtbos/rk3288-thermal-overlay.dts before building, if you do not want to.
+
+RK3288: The postinstall script installs a version of ffmpeg that supports HW decoding on RockChip devices, using only mainline kernel.
 It is build from the same source as LibreElec's patched ffmpeg for Kodi.
 
 The script is in development and uses sudo. Any bug may possibly delete everything permanently!
@@ -25,7 +27,7 @@ USE AT YOUR OWN RISK!!!
 
 You need:
 
-  - Rockchip device (now only RK3288)
+  - Rockchip device (now only RK3288 and RK3588)
   - SD card
 
 ### Prerequisites
@@ -55,7 +57,8 @@ Check your SD card with the following command, write down where the original fir
 
 Change RKDEVICE to your device. Following devices are supported:
 
-evb firefly miqi openhour phycore popmetal rock-pi-n8 vyasa tinker tinker-s
+RK3288: evb firefly miqi openhour phycore popmetal rock-pi-n8 vyasa tinker tinker-s
+RK3588: rock-5b
 
 ```
 ./build.sh -SD
@@ -78,14 +81,14 @@ Optionally enter chroot environment on the SD card:
 Insert the SD card and powerup, login with user root and password admin. To start ssh to the board:
 
 ```
-ssh root@192.168.1.5
+ssh root@192.168.1.7
 ```
 
 Now install gnome and kodi including hardware decoding:
 ```
 rockchip-postinstall
 ```
-It is also possible to execute rockchip-postinstall from inside the chroot. You could use option `-p` fot this.
+It is also possible to execute rockchip-postinstall from inside the chroot. You could use option `-p` for this.
 
 You can either start gnome with:
 ```
@@ -97,6 +100,20 @@ systemctl start kodi
 ```
 After this, you are on your own. It is supposed to be a minimal installation of Arch Linux.
 
+## Installation on NVME of RK3588
+
+Create the SD card as above and login in as root. Then clone and edit the script so that:
+```
+ATFDEVICE="nvme"
+and
+ROOT_END_MB=$(( 256*1024  ))        # Size 256GiB if you want to limit the size
+```
+Install packages wit argument '-a'. Format with the same argument `-SD`, but now choose the nvme disk. Install with argument '-r'. Now write U-Boot to the SPI with:
+```
+rockchip-write-dtbos --uboot@spi
+```
+U-Boot on SPI is not automatically updated with updating the uboot package, as it is on the SD card. I left it this way by design.
+You still have a uboot partition on the nvme disk, but only the partlabel is being used (for identifying which board).
 
 ## Features
 
