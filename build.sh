@@ -42,6 +42,7 @@ case $TARGET in
     RKARCH="armv7h"
     FSTABBOOT=""
     FSTABROOT="PARTLABEL=$PARTLABELROOT /     auto   defaults,noatime,nodiratime 0      1"
+    BACKUPREPOURL="https://github.com/ericwoud/buildRKarch/releases/download/packages"
     ;;
   rk3588)
     INTERFACENAME="enP4p65s0"
@@ -54,6 +55,7 @@ case $TARGET in
     FSTABBOOT="PARTLABEL=$PARTLABELBOOT /boot vfat   defaults                    0      2"
     FSTABROOT="PARTLABEL=$PARTLABELROOT /     auto   defaults,noatime,nodiratime 0      0"
     # If the root file system is btrfs or XFS, the fsck order should be set to 0 instead of 1.
+    BACKUPREPOURL="https://github.com/ericwoud/buildRKarch/releases/download/packages8"
     ;;
 esac  
 NEEDED_PACKAGES+=" base openssh wireless-regdb iproute2 f2fs-tools dtc mkinitcpio patch sudo"
@@ -78,7 +80,6 @@ ARCHBOOTSTRAP="https://raw.githubusercontent.com/tokland/arch-bootstrap/master/a
 
 REPOKEY="DD73724DCA27796790D33E98798137154FE1474C"
 REPOURL='ftp://ftp.woudstra.mywire.org/repo/$arch'
-BACKUPREPOURL="https://github.com/ericwoud/buildRKarch/releases/download/packages"
 
 [ -f "./override.sh" ] && source ./override.sh
 
