@@ -303,7 +303,7 @@ function removescript {
 
 [ $USER = "root" ] && sudo="" || sudo="sudo"
 [[ $# == 0 ]] && args="-c"|| args=$@
-cd "$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
+cd "$(dirname -- "$(realpath -- "${BASH_SOURCE[0]}")")"
 while getopts ":rcpalRSDA" opt $args; do declare "${opt}=true" ; done
 echo OPTIONS: rootfs=$r postinst=$p chroot=$c apt=$a loopdev=$l
 trap finish EXIT
