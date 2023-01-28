@@ -92,7 +92,7 @@ function finish {
     echo Running exit function to clean up...
     $sudo sync
     echo $(mountpoint $rootfsdir)
-    while [[ $(mountpoint $rootfsdir) =~  (is a mountpoint) ]]; do
+    while [[ "$(mountpoint $rootfsdir)" =~ "is a mountpoint" ]]; do
       echo "Unmounting...DO NOT REMOVE!"
       $sudo umount -R $rootfsdir
       sleep 0.1
@@ -209,7 +209,8 @@ function bootstrap {
   if [ ! -d "$rootfsdir/etc" ]; then
     rm -f /tmp/downloads/$(basename $ARCHBOOTSTRAP)
     wget --no-verbose $ARCHBOOTSTRAP --no-clobber -P /tmp/downloads/
-    $sudo bash /tmp/downloads/$(basename $ARCHBOOTSTRAP) -q -a $RKARCH -r $ALARM_MIRROR $rootfsdir
+    $sudo bash /tmp/downloads/$(basename $ARCHBOOTSTRAP) -a $RKARCH \
+          -r $ALARM_MIRROR $rootfsdir
     ls $rootfsdir
   fi
 }
@@ -274,7 +275,7 @@ function installscript {
     $sudo pacman -Syu --needed --noconfirm $SCRIPT_PACKAGES $SCRIPT_PACKAGES_ARCHLX
   fi
   # On all linux's
-  if [ $runontarget != "true" ]; then # Not running on TARGET
+  if [ $hostarch == "x86_64" ]; then # Script running on x86_64 so install qemu
     wget --no-verbose $QEMU_ARM          --no-clobber -P ./
     $sudo tar -xf $(basename $QEMU_ARM) -C /usr/local/bin
     wget --no-verbose $QEMU_AARCH64          --no-clobber -P ./
@@ -291,7 +292,7 @@ function installscript {
 }
 function removescript {
   # On all linux's
-  if [ $runontarget != "true" ]; then # Not running on TARGET
+  if [ $hostarch == "x86_64" ]; then # Script running on x86_64 so remove qemu
     $sudo rm -f /usr/local/bin/qemu-arm-static
     $sudo rm -f /usr/local/bin/qemu-aarch64-static
     $sudo rm -f /lib/binfmt.d/05-local-qemu-arm-static.conf
@@ -325,6 +326,8 @@ else
   echo "Not running on $TARGET"
   runontarget="false"
 fi
+hostarch=$(uname -m)
+echo "Host Arch:" $hostarch
 
 [ "$a" = true ] && installscript
 [ "$A" = true ] && removescript
