@@ -268,6 +268,20 @@ function chrootfs {
   $schroot
 }
 
+function backuprootfs {
+  $sudo tar -vcf "${BACKUPFILE}" -C $rootfsdir .
+}
+
+function restorerootfs {
+  if [ -z "$(ls $rootfsdir)" ] || [ "$(ls $rootfsdir)" = "boot" ]; then
+    $sudo tar -vxf "${BACKUPFILE}" -C $rootfsdir
+    echo "Run ./build.sh and execute 'pacman -Sy bpir64-atf-git' to write the" \
+         "new atf-boot! Then type 'exit'."
+  else
+    echo "Root partition not empty!"
+  fi
+}
+
 function installscript {
   if [ ! -f "/etc/arch-release" ]; then ### Ubuntu / Debian
     $sudo apt-get install --yes         $SCRIPT_PACKAGES $SCRIPT_PACKAGES_DEBIAN
@@ -305,7 +319,7 @@ function removescript {
 [ $USER = "root" ] && sudo="" || sudo="sudo"
 [[ $# == 0 ]] && args="-c"|| args=$@
 cd "$(dirname -- "$(realpath -- "${BASH_SOURCE[0]}")")"
-while getopts ":rcpalRSDA" opt $args; do declare "${opt}=true" ; done
+while getopts ":rcpalbRSDAB" opt $args; do declare "${opt}=true" ; done
 echo OPTIONS: rootfs=$r postinst=$p chroot=$c apt=$a loopdev=$l
 trap finish EXIT
 shopt -s extglob
@@ -351,19 +365,28 @@ else
   schroot="$sudo unshare --mount --fork --kill-child --pid --root=$rootfsdir"
 fi
 
-if [ "$R" = true ] ; then
-  echo Removing rootfs...
-  $sudo rm -rf $rootfsdir/*
-  exit
-fi
 echo "Rootfsdir="$rootfsdir
 echo "Mountdev="$mountdev
 
 if [ ! -z $rootfsdir ]; then
   $sudo umount $mountdev
   [ -d $rootfsdir ] || $sudo mkdir $rootfsdir
-  $sudo mount --source $mountdev --target $rootfsdir -o exec,dev,noatime,nodiratime
+  [ "$b" = true ] && ro=",ro" || ro=""
+  $sudo mount --source $mountdev --target $rootfsdir \
+              -o exec,dev,noatime,nodiratime$ro
   [[ $? != 0 ]] && exit
+  if [ "$R" = true ] ; then
+    read -p "Type <remove> to delete everything from the card: " prompt
+    [[ $prompt != "remove" ]] && exit
+    $sudo rm -rf $rootfsdir/{*,.*}
+    exit
+  fi
+  if [ -L "/dev/disk/by-partlabel/$PARTLABELBOOT" ]; then
+    $sudo mkdir -p $rootfsdir/boot
+    $sudo mount "/dev/disk/by-partlabel/$PARTLABELBOOT" $rootfsdir/boot
+  fi
+  if [ "$b" = true ] ; then backuprootfs; exit; fi
+  if [ "$B" = true ] ; then restorerootfs; exit; fi
   [ "$r" = true ] && bootstrap
   $sudo mount -t proc               /proc $rootfsdir/proc
   [[ $? != 0 ]] && exit
@@ -373,10 +396,6 @@ if [ ! -z $rootfsdir ]; then
   [[ $? != 0 ]] && exit
   $sudo mount --rbind --make-rslave /run  $rootfsdir/run
   [[ $? != 0 ]] && exit
-  if [ -L "/dev/disk/by-partlabel/$PARTLABELBOOT" ]; then
-    $sudo mkdir -p $rootfsdir/boot
-    $sudo mount "/dev/disk/by-partlabel/$PARTLABELBOOT" $rootfsdir/boot
-  fi
   [ "$r" = true ] && rootfs
   [ "$p" = true ] && $schroot rockchip-postinstall
   [ "$c" = true ] && chrootfs

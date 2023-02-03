@@ -127,6 +127,8 @@ Command line options:
 * -p   : Execute rockchip-postinstall from chroot
 * -c   : Execute chroot
 * -R   : Delete RootFS.
+* -b   : Create backup of rootfs
+* -B   : Restore backup of rootfs
 * none : Enter chroot, same as option `-c`
 
 * Other variables to tweak also at top of build script.
