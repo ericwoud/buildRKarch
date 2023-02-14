@@ -9,7 +9,7 @@
 TARGET="rk3588"
 RKDEVICE="rock-5b"
 ATFDEVICE="sdmmc"
-#ATFDEVICE="nvme"
+ATFDEVICE="nvme"
 # ----------------
 
 # https://github.com/bradfa/flashbench.git, running multiple times:
@@ -159,6 +159,8 @@ function formatsd {
 
 function formatsd_rk3288 {
   device=$1
+  $sudo wipefs --all --force "${device}"
+  $sudo sync
   $sudo dd of="${device}" if=/dev/zero bs=1024 count=$bootstart
   $sudo sync
   $sudo partprobe "${device}"
@@ -184,6 +186,8 @@ function formatsd_rk3288 {
 function formatsd_rk3588 {
   echo FORMAT OTHER
   device=$1
+  $sudo wipefs --all --force "${device}"
+  $sudo sync
   $sudo dd of="${device}" if=/dev/zero bs=1024 count=$bootstart
   $sudo sync
   $sudo partprobe "${device}"

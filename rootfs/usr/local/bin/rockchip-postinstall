@@ -5,13 +5,11 @@ gnome=$(pacman -Sgq gnome | grep -v gnome-boxes | grep -v gnome-remote-desktop)
 pacman -Syu --needed --noconfirm $gnome \
 xorg linux-api-headers \
 base-devel git asp gtk-doc gobject-introspection meson python-tappy cmake \
-amf-headers avisynthplus clang ladspa nasm libudev0-shim bc go inetutils \
+amf-headers avisynthplus clang ladspa nasm bc go inetutils \
 afpfs-ng doxygen glew gperf java-runtime libaacs libcec-rpi mariadb-libs \
 libmicrohttpd libmpeg2 lirc python-pycryptodomex python-pillow python-pybluez \
-python-simplejson shairplay tinyxml swig rapidjson gtest graphviz \
-wayland-protocols waylandpp mesa mesa-utils \
-libva-vdpau-driver
-# libva-vdpau-driver for kodi build
+python-simplejson shairplay tinyxml rapidjson gtest graphviz \
+wayland-protocols waylandpp mesa mesa-utils
 [[ $? != 0 ]] && exit
 
 # target = first part of partlabel of root partition
@@ -20,10 +18,8 @@ case $target in
   rk3288)
     pacman -Syu --needed --noconfirm linux-armv7-headers xf86-video-armsoc-rockchip\
       kodi-ext-git kodi-ext-git-dev kodi-ext-git-eventclients kodi-ext-git-tools-texturepacker \
-      fstrcmp kodi-standalone-service-git libcrossguid-git libudfread-git
+      fstrcmp kodi-standalone-service-git libcrossguid-git libudfread-git ffmpeg-v4l2-request-git
     [[ $? != 0 ]] && exit
-    pacman -Rdd --noconfirm ffmpeg
-    pacman -S --noconfirm ffmpeg-v4l2-request-git
     ;;
   rk3588)
     pacman -Syu --needed --noconfirm linux-rockchip-rk3588-bin-headers
@@ -40,6 +36,7 @@ esac
 #     -D arm_neon=false \
 # Replace:
 #  git submodule set-url subprojects/mutest "$srcdir/mutest"
+#  git submodule update
 # With:
 #  git config submodule.externals/vendor/mutest.url "$srcdir/mutest"
 #  git -c protocol.file.allow=always submodule update
