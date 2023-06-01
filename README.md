@@ -61,7 +61,7 @@ RK3288: evb firefly miqi openhour phycore popmetal rock-pi-n8 vyasa tinker tinke
 RK3588: rock-5b
 
 ```
-./build.sh -SD
+./build.sh -F
 ```
 Now format your SD card with the same command.
 
@@ -104,11 +104,9 @@ After this, you are on your own. It is supposed to be a minimal installation of 
 
 Create the SD card as above and login in as root. Then clone and edit the script so that:
 ```
-ATFDEVICE="nvme"
-and
 ROOT_END_MB=$(( 256*1024  ))        # Size 256GiB if you want to limit the size
 ```
-Install packages wit argument '-a'. Format with the same argument `-SD`, but now choose the nvme disk. Install with argument '-r'. Now write U-Boot to the SPI with:
+Install packages with argument '-a'. Format with the same argument `-F`, but now choose the nvme disk. Install with argument '-r'. Now write U-Boot to the SPI with:
 ```
 rockchip-write-dtbos --uboot@spi
 ```
@@ -121,14 +119,15 @@ Command line options:
 
 * -a   : Install necessairy packages.
 * -A   : Remove necessairy packages.
-* -SD  : Format SD card
-* -l   : Add this option to `-SD` if you want to format a loop-device
+* -F   : Format SD card or image, then setup rootfs (adds -r)
+* -l   : Add this option to use an image-file instead of an SD card
 * -r   : Build RootFS.
 * -p   : Execute rockchip-postinstall from chroot
 * -c   : Execute chroot
 * -R   : Delete RootFS.
 * -b   : Create backup of rootfs
 * -B   : Restore backup of rootfs
+* -x   : Create archive from image-file
 * none : Enter chroot, same as option `-c`
 
 * Other variables to tweak also at top of build script.

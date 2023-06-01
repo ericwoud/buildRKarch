@@ -1,11 +1,13 @@
 /dts-v1/;
 /plugin/;
 
-&usb_host1 {
+// &usb_host1
+&{/usb@ff540000} {
   snps,need-phy-for-wake;
 };
- 
-&usb_otg {
+
+// &usb_otg
+&{/usb@ff580000} {
   snps,need-phy-for-wake;
 };
 

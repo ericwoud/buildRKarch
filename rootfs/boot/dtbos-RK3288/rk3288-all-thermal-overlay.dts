@@ -1,0 +1,27 @@
+/dts-v1/;
+/plugin/;
+
+&{/thermal-zones/cpu-thermal/trips} {
+
+  cpu_alert0 {
+    temperature = <85000>;
+  };
+  cpu_alert1 {
+    temperature = <90000>;
+  };
+  cpu_crit {
+    temperature = <95000>;
+  };
+};
+
+&{/thermal-zones/gpu-thermal/trips} {
+
+  gpu_alert0 {
+    temperature = <85000>;
+  };
+  gpu_crit {
+    temperature = <95000>;
+  };
+
+};
+

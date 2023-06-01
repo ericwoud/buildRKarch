@@ -6,6 +6,6 @@ autoconnect-priority=-999
 interface-name=<replace>
 
 [ipv4]
-address1=192.168.1.7/24,192.168.1.1
-dns=192.168.1.1;
+address1=<replace>/24,<replace>
+dns=<replace>;
 method=manual

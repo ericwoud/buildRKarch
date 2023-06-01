@@ -8,42 +8,26 @@
      simple-audio-card,name = "DW-I2S-HDMI";
      simple-audio-card,mclk-fs = <512>;
      simple-audio-card,codec {
-       sound-dai = <&hdmi>;
+       // &hdmi
+       sound-dai = <0xff980000>;
      };
      simple-audio-card,cpu {
-       sound-dai = <&i2s>;
+       // &i2s
+       sound-dai = <0xff890000>;
      };
-   };
-   soundcard-spdif {
-     compatible = "simple-audio-card";
-     simple-audio-card,name = "SPDIF";
-     simple-audio-card,dai-link@1 {
-       cpu {
-               sound-dai = <&spdif>;
-       };
-       codec {
-               sound-dai = <&spdif_out>;
-       };
-     };
-   };
-   spdif_out: spdif-out {
-     compatible = "linux,spdif-dit";
-     #sound-dai-cells = <0>;
    };
 };
 
-&hdmi {
+// &hdmi
+&{/hdmi@ff980000} {
   #address-cells = <1>;
   #size-cells = <0>;
   #sound-dai-cells = <0>;
 };
 
-&i2s {
+// &i2s
+&{/i2s@ff890000} {
   #sound-dai-cells = <0>;
-  status = "okay";
-};
-
-&spdif {
   status = "okay";
 };
 
