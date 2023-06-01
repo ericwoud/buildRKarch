@@ -234,12 +234,12 @@ function rootfs {
         "$rootfsdir/etc/NetworkManager/system-connections/Wired connection 1.nmconnection"
   $sudo chmod 0600 -R $rootfsdir/etc/NetworkManager/system-connections
   $sudo chmod 0700    $rootfsdir/etc/NetworkManager/system-connections
-  $sudo systemctl --root=$rootfsdir --force --no-pager reenable systemd-timesyncd.service
-  $sudo systemctl --root=$rootfsdir --force --no-pager reenable sshd.service
-  $sudo systemctl --root=$rootfsdir --force --no-pager reenable NetworkManager
+  $schroot sudo systemctl --force --no-pager reenable systemd-timesyncd.service </dev/null 
+  $schroot sudo systemctl --force --no-pager reenable sshd.service
+  $schroot sudo systemctl --force --no-pager reenable NetworkManager
   find -L "rootfs/etc/systemd/system" -name "*.service"| while read service ; do
     service=$(basename $service); [[ "$service" =~ "@" ]] && continue
-    $sudo systemctl --root=$rootfsdir --force --no-pager reenable $service
+    $schroot sudo systemctl --force --no-pager reenable $service
   done
 }
 
