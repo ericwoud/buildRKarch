@@ -35,7 +35,11 @@ case $target in
     kodikeymap
     ;;
   rk3588)
-    packages+=' '" linux-rockchip-rk3588-bin-headers"
+    packages+=' '" linux-rockchip-rk3588-bin-headers mesa-panfork-git mesa-utils"
+    packages+=' '" vulkan-swrast-panfork-git vulkan-mesa-layers-panfork-git opencl-mesa-panfork-git"
+    packages+=' '" mesa-vdpau-panfork-git libva-mesa-driver-panfork-git"
+    packages+=' '" dri2to3-git gl4es-git libmali-radxa-g610-bin"
+    packages+=' '" "
     pacman -Syu --needed --noconfirm $packages
     ;;
 esac
