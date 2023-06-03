@@ -25,7 +25,8 @@ case $target in
     ;;
 esac
 
-pacman -Syu --needed --noconfirm $packages
+until pacman -Syu --needed --noconfirm $packages
+do sleep 2; done
 
 cat <<EOT | tee /var/lib/kodi/.kodi/userdata/keymaps/keymap.xml
 <keymap>

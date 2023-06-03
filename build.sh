@@ -17,7 +17,7 @@ SPL_START_KB=32                      # Start of uboot partition
 MINIMAL_SIZE_BOOT_MB=150             # Minimal size of boot partition
 ROOT_END_MB=100%                     # Size of root partition
 #ROOT_END_MB=$(( 256*1024  ))        # Size 256GiB
-IMAGE_SIZE_MB=7456             # Size of image
+IMAGE_SIZE_MB=15000                  # Size of image
 IMAGE_FILE="./rockchip.img"          # Name of image
 
 NEEDED_PACKAGES="base hostapd openssh wireless-regdb iproute2 nftables btrfs-progs dosfstools"
