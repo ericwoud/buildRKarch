@@ -23,6 +23,10 @@ case $target in
     packages+=' '" dri2to3-git gl4es-git libmali-radxa-g610-bin"
     packages+=' '" mpp-git ffmpeg4.4-mpp ffmpeg-mpp"
     ;;
+  *)
+    echo "Unknown target '${target}'"
+    exit
+    ;;
 esac
 
 until pacman -Syu --needed --noconfirm $packages

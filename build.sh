@@ -57,6 +57,10 @@ case ${target} in
     NEEDED_PACKAGES+=' '"linux-rockchip-rk3588-bin"
     PREBUILT_PACKAGES+=' '"${target}-uboot-git"
     ;;
+  *)
+    echo "Unknown target '${target}'"
+    exit
+    ;;
 esac
 } 
 
@@ -310,8 +314,14 @@ function removescript {
 }
 
 function ctrl_c() {
-  echo "** Trapped CTRL-C **"
-  [ ! -z "$mainPID" ] && kill -kill $mainPID >/dev/null
+  echo "** Trapped CTRL-C, PID=$mainPID **"
+  if [ ! -z "$mainPID" ]; then
+    pp=$mainPID; pps=$pp
+    until [ -z "$pp" ]; do pp=$(pgrep -P $pp); pps+="\n"$pp; done
+    pps=$(echo -e $pps | sort -r)
+    for pp in $pps ; do $sudo kill -9 $pp &>/dev/null; done
+    wait $mainPID
+  fi
   exit
 }
 
@@ -508,7 +518,9 @@ if [ "$r" = true ]; then rootfs &
   mainPID=$! ; wait $mainPID ; unset mainPID
 fi
 [ "$c" = true ] && chrootfs
-[ "$p" = true ] && $schroot rockchip-postinstall
+if [ "$p" = true ]; then $schroot rockchip-postinstall &
+  mainPID=$! ; wait $mainPID ; unset mainPID
+fi
 [ "$x" = true ] && compressimage
 
 exit
