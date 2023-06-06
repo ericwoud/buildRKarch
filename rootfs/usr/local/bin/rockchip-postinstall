@@ -7,7 +7,11 @@ kodi_pkgs+=' '"fstrcmp kodi-standalone-service-git libcrossguid-git libudfread-g
 kodi_pkgs+=' '"kodi-addon-inputstream-adaptive-git kodi-addon-pvr-hts-git"
 kodi_pkgs+=' '"kodi-addon-script-module-inputstreamhelper"
 
-packages="gnome xorg $kodi_pkgs"
+packages="$kodi_pkgs"
+
+#check groups
+if ! pacman -Qg gnome &>/dev/null; then packages+=' '"gnome"; fi
+if ! pacman -Qg xorg  &>/dev/null; then packages+=' '"xorg"; fi
 
 # target = first part of partlabel of root partition
 target=$(lsblk -pilno partlabel,type,mountpoint | grep -G 'part /$' | head -n1 | cut -d "-" -f1 | cut -d"@" -f1)
@@ -32,6 +36,7 @@ esac
 until pacman -Syu --needed --noconfirm $packages
 do sleep 2; done
 
+install --directory --group=kodi --owner=kodi --mode=750 /var/lib/kodi/.kodi/userdata/keymaps
 cat <<EOT | tee /var/lib/kodi/.kodi/userdata/keymaps/keymap.xml
 <keymap>
 <global>
@@ -43,7 +48,7 @@ cat <<EOT | tee /var/lib/kodi/.kodi/userdata/keymaps/keymap.xml
 </global>
 </keymap>
 EOT
-chown kodi:kodi /var/lib/kodi/.kodi/userdata/keymaps/keymap.xml
+chown -v kodi:kodi /var/lib/kodi/.kodi/userdata/keymaps/keymap.xml
 
 for user in gdm /home/*; do
   sudo -u $(basename $user) dbus-launch --exit-with-session gsettings set \
