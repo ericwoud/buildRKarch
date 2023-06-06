@@ -313,14 +313,17 @@ function removescript {
   exit
 }
 
+function add_children() {
+  [ -z "$1" ] && return || echo $1
+  for ppp in $(pgrep -P $1 2>/dev/null) ; do add_children $ppp; done
+}
+
 function ctrl_c() {
   echo "** Trapped CTRL-C, PID=$mainPID **"
   if [ ! -z "$mainPID" ]; then
-    pp=$mainPID; pps=$pp
-    until [ -z "$pp" ]; do pp=$(pgrep -P $pp); pps+="\n"$pp; done
-    pps=$(echo -e $pps | sort -r)
-    for pp in $pps ; do $sudo kill -9 $pp &>/dev/null; done
-    wait $mainPID
+    for pp in $(add_children $mainPID | sort -nr); do
+      $sudo kill -9 $pp &>/dev/null
+    done
   fi
   exit
 }
