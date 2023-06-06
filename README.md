@@ -53,22 +53,18 @@ Install all necessary packages with:
 ```
 ./build.sh -a
 ```
-Check your SD card with the following command, write down where the original first partition starts! The script will first show you this info before formatting anything. Set `SD_BLOCK_SIZE_KB` and `SD_ERASE_SIZE_MB` in the script as described there. Don't format a brand new SD card before you find the original erase/block size. It is the best way to determine this.
 
-Change RKDEVICE to your device. Following devices are supported:
+The following commands can also be run with the `-l` switch. In this case an image is created by means of a loop device.
 
-RK3288: evb firefly miqi openhour phycore popmetal rock-pi-n8 vyasa tinker tinker-s
-RK3588: rock-5b
-
+Now format your SD card and create rootfs with:
 ```
 ./build.sh -F
 ```
-Now format your SD card with the same command.
 
-Now build the root filesystem.
+Optionally run the post-install script from chroot (which is slower). It can also be run after the board has booted (which is faster).
 
 ```
-./build.sh -r
+./build.sh -p
 ```
 Optionally enter chroot environment on the SD card:
 
@@ -136,4 +132,6 @@ Command line options:
 ## Acknowledgments
 
 * [Jernej Škrabec's FFmpeg](https://github.com/jernejsk/FFmpeg)
-
+* [Jeffy Chen's FFmpeg](https://github.com/JeffyCN/FFmpeg)
+* [Armbian Linux Kernel](https://armbian.com)
+* [Icecream95's mesa-panfork](https://gitlab.com/panfork/mesa)
