@@ -334,11 +334,14 @@ export LANGUAGE=C
 
 cd "$(dirname -- "$(realpath -- "${BASH_SOURCE[0]}")")"
 [ $USER = "root" ] && sudo="" || sudo="sudo"
-[[ $# == 0 ]] && args="-c" || args=$@
-[[ "$args" == "-l" ]] && args="-cl"
-while getopts ":ralcbxpRAFB" opt $args; do declare "${opt}=true" ; done
-if [ "$l" = true ] && [ ! -f $IMAGE_FILE ]; then
-  F=true
+while getopts ":ralcbxRAFBM" opt $args; do declare "${opt}=true"; ((argcnt++)); done
+[ -z "$argcnt" ] && c=true
+if [ "$l" = true ]; then
+  if [ $argcnt -eq 1 ]; then 
+    c=true
+  else
+    [ ! -f $IMAGE_FILE ] && F=true
+  fi
 fi
 [ "$F" = true ] && r=true
 trap finish EXIT
