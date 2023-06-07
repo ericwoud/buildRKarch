@@ -37,17 +37,17 @@ until pacman -Syu --needed --noconfirm $packages
 do sleep 2; done
 
 install --directory --group=kodi --owner=kodi --mode=750 /var/lib/kodi/.kodi/userdata/keymaps
-cat <<EOT | tee /var/lib/kodi/.kodi/userdata/keymaps/keymap.xml
-<keymap>
-<global>
-<keyboard>
-<sleep>Suspend</sleep>
-<pageup>ChannelUp</pageup>
-<pagedown>ChannelDown</pagedown>
-</keyboard>
-</global>
-</keymap>
-EOT
+cat <<-EOT | tee /var/lib/kodi/.kodi/userdata/keymaps/keymap.xml
+	<keymap>
+	<global>
+	<keyboard>
+	<sleep>Suspend</sleep>
+	<pageup>ChannelUp</pageup>
+	<pagedown>ChannelDown</pagedown>
+	</keyboard>
+	</global>
+	</keymap>
+	EOT
 chown -v kodi:kodi /var/lib/kodi/.kodi/userdata/keymaps/keymap.xml
 
 for user in gdm /home/*; do
