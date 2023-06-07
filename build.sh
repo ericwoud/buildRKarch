@@ -341,7 +341,7 @@ export LANGUAGE=C
 
 cd "$(dirname -- "$(realpath -- "${BASH_SOURCE[0]}")")"
 [ $USER = "root" ] && sudo="" || sudo="sudo"
-while getopts ":ralcbxRAFBM" opt $args; do declare "${opt}=true"; ((argcnt++)); done
+while getopts ":ralcbxpRAFBM" opt $args; do declare "${opt}=true"; ((argcnt++)); done
 [ -z "$argcnt" ] && c=true
 if [ "$l" = true ]; then
   if [ $argcnt -eq 1 ]; then 
