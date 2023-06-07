@@ -159,6 +159,7 @@ function resolv {
 }
 
 function bootstrap {
+  trap ctrl_c INT
   [ -d "$rootfsdir/etc" ] && return
   eval repo=${REPOURL}
   until pacmanpkg=$(curl $repo'/' -l | grep -e pacman-static | grep -v .sig)
@@ -170,16 +171,16 @@ function bootstrap {
   resolv
   echo 'Server = '"$ALARM_MIRROR/$arch"'/$repo' | \
     $sudo tee $rootfsdir/etc/pacman.d/mirrorlist
-  cat <<EOF | $sudo tee $rootfsdir/etc/pacman.conf
-[options]
-SigLevel = Never
-[core]
-Include = /etc/pacman.d/mirrorlist
-[extra]
-Include = /etc/pacman.d/mirrorlist
-[community]
-Include = /etc/pacman.d/mirrorlist
-EOF
+  cat <<-EOF | $sudo tee $rootfsdir/etc/pacman.conf
+	[options]
+	SigLevel = Never
+	[core]
+	Include = /etc/pacman.d/mirrorlist
+	[extra]
+	Include = /etc/pacman.d/mirrorlist
+	[community]
+	Include = /etc/pacman.d/mirrorlist
+	EOF
   until $schroot pacman-static -Syu --noconfirm --needed --overwrite \* pacman archlinuxarm-keyring
   do sleep 2; done
   $sudo mv -vf $rootfsdir/etc/pacman.conf.pacnew         $rootfsdir/etc/pacman.conf
@@ -195,6 +196,7 @@ function selectdir {
 }
 
 function rootfs {
+  trap ctrl_c INT
   resolv
   $sudo mkdir -p $rootfsdir/boot
   $sudo cp -rfvL ./rootfs/boot $rootfsdir
@@ -245,6 +247,11 @@ function rootfs {
     service=$(basename $service); [[ "$service" =~ "@" ]] && continue
     $schroot sudo systemctl --force --no-pager reenable $service
   done
+}
+
+function postinstall {
+  trap ctrl_c INT
+  $schroot rockchip-postinstall
 }
 
 function chrootfs {
@@ -322,7 +329,7 @@ function ctrl_c() {
   echo "** Trapped CTRL-C, PID=$mainPID **"
   if [ ! -z "$mainPID" ]; then
     for pp in $(add_children $mainPID | sort -nr); do
-      $sudo kill -9 $pp &>/dev/null
+      $sudo kill -s SIGKILL $pp &>/dev/null
     done
   fi
   exit
@@ -523,10 +530,10 @@ $sudo mount --rbind --make-rslave /run  $rootfsdir/run
 if [ "$r" = true ]; then rootfs &
   mainPID=$! ; wait $mainPID ; unset mainPID
 fi
-[ "$c" = true ] && chrootfs
-if [ "$p" = true ]; then $schroot rockchip-postinstall &
+if [ "$p" = true ]; then postinstall &
   mainPID=$! ; wait $mainPID ; unset mainPID
 fi
+[ "$c" = true ] && chrootfs
 [ "$x" = true ] && compressimage
 
 exit
