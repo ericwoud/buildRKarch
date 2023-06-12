@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Set default configuration values
+# These can be overridden by entering them into config.sh
+
 ALARM_MIRROR="http://de.mirror.archlinuxarm.org"
 
 QEMU_ARM="https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-arm-static.tar.gz"
@@ -63,6 +66,8 @@ case ${target} in
     ;;
 esac
 } 
+
+# End of default configuration values
 
 function finish {
   trap 'echo got SIGINT' INT
@@ -454,6 +459,8 @@ echo -e "Device=${device}\nTarget=${target}\nRK-device=${rkdev}\nATF-device=${at
 [ -z "${rkdev}" ] && exit
 [ -z "${atfdevice}" ] && exit
 setupenv # Now that target and atfdevice are known.
+# Check if 'config.sh' exists.  If so, source that to override default values.
+[ -f "config.sh" ] && source config.sh
 
 if [ "$r" = true ]; then
   echo -e "\nCreate root filesystem\n"

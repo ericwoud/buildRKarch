@@ -19,6 +19,9 @@ Delete the file rootfs/boot/dtbos/rk3288-thermal-overlay.dts before building, if
 RK3288: The postinstall script installs a version of ffmpeg that supports HW decoding on RockChip devices, using only mainline kernel.
 It is build from the same source as LibreElec's patched ffmpeg for Kodi.
 
+Basic settings are prompted for, when running the script. Other tweaks can be written to config.sh in the
+same directory as the script. There the environment variables can be set, that will override the default settings.
+
 The script is in development and uses sudo. Any bug may possibly delete everything permanently!
 
 USE AT YOUR OWN RISK!!!
