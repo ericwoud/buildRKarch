@@ -8,5 +8,5 @@
 /*.tar*
 /*.bin
 /*.log
-
+/config.sh
 
