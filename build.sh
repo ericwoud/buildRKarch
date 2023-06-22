@@ -166,10 +166,11 @@ function resolv {
 function bootstrap {
   trap ctrl_c INT
   [ -d "$rootfsdir/etc" ] && return
-  eval repo=${REPOURL}
-  until pacmanpkg=$(curl $repo'/' -l | grep -e pacman-static | grep -v .sig)
+  eval repo=${BACKUPREPOURL}
+  until pacmanpkg=$(curl -L $repo'/ericwoud.db' | tar -xzO --wildcards "pacman-static*/desc" \
+        | grep "%FILENAME%" -A1 | tail -n 1)
   do sleep 2; done
-  until curl $repo'/'$pacmanpkg | xz -dc - | $sudo tar x -C $rootfsdir
+  until curl -L $repo'/'$pacmanpkg | xz -dc - | $sudo tar x -C $rootfsdir
   do sleep 2; done
   [ ! -d "$rootfsdir/usr" ] && return
   $sudo mkdir -p $rootfsdir/{etc/pacman.d,var/lib/pacman}
