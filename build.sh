@@ -216,9 +216,8 @@ function rootfs {
   $schroot pacman-key --recv-keys $REPOKEY
   $schroot pacman-key --finger     $REPOKEY
   $schroot pacman-key --lsign-key $REPOKEY
-  until $schroot pacman -Syyu --noconfirm --needed --overwrite \* pacman-static
-  do sleep 2; done
-  until $schroot pacman -Syu --needed --noconfirm $NEEDED_PACKAGES $EXTRA_PACKAGES $PREBUILT_PACKAGES
+  until $schroot pacman -Syyu --needed --noconfirm --overwrite \* pacman-static \
+                        $NEEDED_PACKAGES $EXTRA_PACKAGES $PREBUILT_PACKAGES
   do sleep 2; done
   $schroot useradd --create-home --user-group \
                --groups audio,games,log,lp,optical,power,scanner,storage,video,wheel \
