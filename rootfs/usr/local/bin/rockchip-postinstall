@@ -33,7 +33,7 @@ case $target in
     ;;
 esac
 
-until pacman -Syu --needed --noconfirm $packages
+until pacman -Syyu --needed --noconfirm $packages
 do sleep 2; done
 
 install --directory --group=kodi --owner=kodi --mode=750 /var/lib/kodi/.kodi/userdata/keymaps
