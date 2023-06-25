@@ -208,8 +208,8 @@ function rootfs {
   $sudo cp -rfvL ./rootfs/boot $rootfsdir
   selectdir $rootfsdir/boot/dtbos ${target^^}
   if [ -z "$(cat $rootfsdir/etc/pacman.conf | grep -oP '^\[ericwoud\]')" ]; then
-    echo -e "\n[ericwoud]\nServer = $REPOURL\nServer = $BACKUPREPOURL" | \
-               $sudo tee -a $rootfsdir/etc/pacman.conf
+    serv="[ericwoud]\nServer = $REPOURL\nServer = $BACKUPREPOURL\n"
+    $sudo sed -i '/^\[core\].*/i'" ${serv}"'' $rootfsdir/etc/pacman.conf
   fi
   $schroot pacman-key --init
   $schroot pacman-key --populate archlinuxarm
