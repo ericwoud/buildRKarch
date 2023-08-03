@@ -103,7 +103,9 @@ function waitdev {
 }
 
 function formatimage {
-  esize_mb=$(cat /sys/block/${device/"/dev/"/""}/device/preferred_erase_size) 
+  if [ -f /sys/block/${device/"/dev/"/""}/device/preferred_erase_size ]; then
+    esize_mb=$(cat /sys/block/${device/"/dev/"/""}/device/preferred_erase_size)
+  fi
   [ -z "$esize_mb" ] && esize_mb=$SD_ERASE_SIZE_MB || esize_mb=$(( $esize_mb /1024 /1024 ))
   echo "Erase size = $esize_mb MB"
   minimalbootstart_kb=$(( $SPL_START_KB + ($MINIMAL_SIZE_UBOOT_MB * 1024) ))
