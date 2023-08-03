@@ -381,11 +381,12 @@ echo "Host Arch:" $hostarch
 [ "$a" = true ] && installscript
 [ "$A" = true ] && removescript
 
-rootdev=$(mount | grep -E '\s+on\s+/\s+' | cut -d' ' -f1)
+rootdevice=$(mount | grep -E '\s+on\s+/\s+' | cut -d' ' -f1)
+rootdev=$(lsblk -sprno name ${rootdevice} | tail -2 | head -1)
 echo "rootdev=$rootdev , do not use."
 [ -z $rootdev ] && exit
 
-pkroot=$(lsblk -rno pkname $rootdev);
+pkroot=$(lsblk -srno name ${rootdevice} | tail -1)
 echo "pkroot=$pkroot , do not use."
 [ -z $pkroot ] && exit
 
