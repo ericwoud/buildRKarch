@@ -223,9 +223,9 @@ function setupnetworkmanager {
 function rootfs {
   trap ctrl_c INT
   resolv
-  $sudo mkdir -p $rootfsdir/boot
-  $sudo cp -rfvL ./rootfs/boot $rootfsdir
-  selectdir $rootfsdir/boot/dtbos ${target^^}
+#####  $sudo mkdir -p $rootfsdir/boot
+#####  $sudo cp -rfvL ./rootfs/boot $rootfsdir
+#####  selectdir $rootfsdir/boot/dtbos ${target^^}
   if [ -z "$(cat $rootfsdir/etc/pacman.conf | grep -oP '^\[ericwoud\]')" ]; then
     serv="[ericwoud]\nServer = $REPOURL\nServer = $BACKUPREPOURL\n"
     $sudo sed -i '/^\[core\].*/i'" ${serv}"'' $rootfsdir/etc/pacman.conf
@@ -255,7 +255,7 @@ function rootfs {
   $sudo sed -i '/.*'$LC'.*/{x;/^$/!d;g;}' $rootfsdir/etc/locale.gen # Only leave one match
   [ -z $($schroot localectl list-locales | grep --ignore-case $LC) ] && $schroot locale-gen
   echo "LANG=$LC" | $sudo tee $rootfsdir/etc/locale.conf
-  for d in $(ls ./rootfs/ | grep -vx boot); do $sudo cp -rfvL ./rootfs/$d $rootfsdir; done
+#####  for d in $(ls ./rootfs/ | grep -vx boot); do $sudo cp -rfvL ./rootfs/$d $rootfsdir; done
   echo -e "# <device> <dir> <type> <options> <dump> <fsck>\n$FSTABROOT\n$FSTABBOOT" | \
     $sudo tee $rootfsdir/etc/fstab
   $schroot sudo systemctl --force --no-pager reenable systemd-timesyncd.service
