@@ -201,6 +201,25 @@ function selectdir {
   $sudo rm -vrf $1-*
 }
 
+function setupnetworkmanager {
+  nmdir="$rootfsdir/etc/NetworkManager/system-connections"
+  cat <<-EOF | $sudo tee $nmdir/WiredConnection1.nmconnection
+	[connection]
+	id=Wired connection 1
+	uuid=27553c0f-0427-3d42-9ea5-883eb4725bbb
+	type=ethernet
+	autoconnect-priority=-999
+	interface-name=${INTERFACENAME}
+	
+	[ipv4]
+	address1=${lanip}/24,${gateway}
+	dns=${dns}
+	method=manual
+	EOF
+  $sudo chmod 0600 -R $nmdir
+  $sudo chmod 0700    $nmdir
+}
+
 function rootfs {
   trap ctrl_c INT
   resolv
@@ -239,15 +258,10 @@ function rootfs {
   for d in $(ls ./rootfs/ | grep -vx boot); do $sudo cp -rfvL ./rootfs/$d $rootfsdir; done
   echo -e "# <device> <dir> <type> <options> <dump> <fsck>\n$FSTABROOT\n$FSTABBOOT" | \
     $sudo tee $rootfsdir/etc/fstab
-  $sudo sed -i -e 's/interface-name=.*/interface-name='"${INTERFACENAME}"'/' \
-               -e 's/address1=.*/address1='"${lanip}"'\/24,'"${gateway}"'/' \
-               -e 's/dns=.*/dns='"${dns}"'/' \
-        "$rootfsdir/etc/NetworkManager/system-connections/Wired connection 1.nmconnection"
-  $sudo chmod 0600 -R $rootfsdir/etc/NetworkManager/system-connections
-  $sudo chmod 0700    $rootfsdir/etc/NetworkManager/system-connections
   $schroot sudo systemctl --force --no-pager reenable systemd-timesyncd.service
   $schroot sudo systemctl --force --no-pager reenable sshd.service
   $schroot sudo systemctl --force --no-pager reenable NetworkManager
+  setupnetworkmanager
 }
 
 function postinstall {
