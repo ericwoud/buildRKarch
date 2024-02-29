@@ -205,7 +205,7 @@ function setupnetworkmanager {
   nmdir="$rootfsdir/etc/NetworkManager/system-connections"
   cat <<-EOF | $sudo tee $nmdir/WiredConnection1.nmconnection
 	[connection]
-	id=Wired connection 1
+	id=WiredConnection1
 	uuid=27553c0f-0427-3d42-9ea5-883eb4725bbb
 	type=ethernet
 	autoconnect-priority=-999
