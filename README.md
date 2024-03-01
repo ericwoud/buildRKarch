@@ -1,5 +1,7 @@
 # buildRKarch
 
+** NOTICE: THERE IS MAJOR REWORK, MOVE TO NEW LINUX KERNEL. THINGS MAY NOT WORK **
+
 Install a minimal Arch-Linux on Rockchip devices from scratch. Now I started only for RK-3288 and RK-3588 devices.
 
 RK-3588 is now the default. Change the first couple of lines of the script (uncomment/comment) to change to RK-3288.
