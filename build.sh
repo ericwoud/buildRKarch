@@ -193,14 +193,6 @@ function bootstrap {
   $sudo mv -vf $rootfsdir/etc/pacman.d/mirrorlist.pacnew $rootfsdir/etc/pacman.d/mirrorlist
 }
 
-function selectdir {
-  $sudo rm -rf $1
-  $sudo mkdir -p $1
-  [ -d $1-$2                ] && $sudo mv -vf $1-$2/*                $1
-  [ -d $1-$2-${atfdevice^^} ] && $sudo mv -vf $1-$2-${atfdevice^^}/* $1
-  $sudo rm -vrf $1-*
-}
-
 function setupnetworkmanager {
   nmdir="$rootfsdir/etc/NetworkManager/system-connections"
   cat <<-EOF | $sudo tee $nmdir/WiredConnection1.nmconnection
