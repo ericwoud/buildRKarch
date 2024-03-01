@@ -235,6 +235,7 @@ function rootfs {
   $schroot pacman-key --recv-keys $REPOKEY
   $schroot pacman-key --finger     $REPOKEY
   $schroot pacman-key --lsign-key $REPOKEY
+  $schroot pacman-key --lsign-key "Arch Linux ARM Build System <builder@archlinuxarm.org>"
   until $schroot pacman -Syyu --needed --noconfirm --overwrite \* pacman-static \
                         $NEEDED_PACKAGES $EXTRA_PACKAGES $PREBUILT_PACKAGES
   do sleep 2; done
