@@ -36,6 +36,10 @@ if [[ $@ =~ "--extlinux" ]]; then
   done
 fi
 
+if [[ $@ =~ "--install" ]]; then
+  exit
+fi
+
 if [[ $@ =~ "--remove" ]]; then
   rm -vf /boot/dtbs/*/rk3288-openhour.dtb
   rm -vf /boot/dtbs/*/*-tojoin.dtb
