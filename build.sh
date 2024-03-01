@@ -258,6 +258,7 @@ function rootfs {
   $schroot sudo systemctl --force --no-pager reenable systemd-timesyncd.service
   $schroot sudo systemctl --force --no-pager reenable sshd.service
   $schroot sudo systemctl --force --no-pager reenable NetworkManager
+  $schroot rockchip-toolbox --extlinux
   setupnetworkmanager
 }
 
