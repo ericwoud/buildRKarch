@@ -82,7 +82,7 @@ if [[ $@ =~ "--remove" ]]; then
   rm -vf /boot/dtbs/*/rk3288-openhour.dtb
   rm -vf /boot/dtbs/*/*-tojoin.dtb
   rm -vf /boot/dtbs/*/*-joined.dtb
-  rm -vf /boot/dtbos/*.dtbo
+  rm -vf /boot/dtbos/*
   exit
 fi
 
@@ -119,6 +119,12 @@ if [ -f "/boot/dtbs/rk3288-miqi.dtb" ]; then
   fdtput /boot/dtbs/rk3288-openhour.dtb -t x /mmc@ff0f0000 card-detect-delay 0xc8
 fi
 
+if [ ! -d "/boot/dtbos" ]; then
+  mkdir -p "/boot/dtbos"
+  cp -vrf /usr/share/buildRKarch/boot/dtbos-${target^^}/${target}-all-*.dts      "/boot/dtbos"
+  cp -vrf /usr/share/buildRKarch/boot/dtbos-${target^^}/${target}-${rkdev}-*.dts "/boot/dtbos"
+fi
+
 # Create .dtbo's
 rm -rf /boot/dtbos/*.dtbo
 for bp in $(shopt -s nullglob; echo /boot/dtbos/*.dts); do
@@ -144,8 +150,6 @@ for file in $(find . -name "${target}-${rkdev}.dtb"); do
            fdtput $tojoin ${line/"//fdtput"/""}
     done
   done
-
-#   dtbos="$(shopt -s nullglob; echo /boot/dtbos/${target}-all-*.dtbo /boot/dtbos/${target}-${rkdev}-*.dtbo)"
 
   dtbos="$(shopt -s nullglob; echo /boot/dtbos/*.dtbo)"
   if test -n "$dtbos"; then
