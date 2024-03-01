@@ -29,7 +29,7 @@ elif [[ $thisarch == "aarch64" ]]; then
   default="linux-rkbsp-joshua-git"
 fi
 
-if [[ $@ =~ "--extlinux" ]]; then
+if [[ $@ =~ "--extlinux" ]] || [ ! -d $(dirname $extlinux) ]; then
   mkdir -p $(dirname $extlinux)
   cat <<-EOF | tee $extlinux
 	DEFAULT ${default}
@@ -65,7 +65,7 @@ if [[ $@ =~ "--extlinux" ]]; then
 	  MENU LABEL Archlinux ARM package ${pkgbase}
 	  LINUX /vmlinuz-${pkgbase}
 	  INITRD /initramfs-${pkgbase}.img
-	  FDT /dtbs/${pkgbase}/rockchip/${target}-joined.dtb
+	  FDT /dtbs/${pkgbase}/rockchip/${target}-${rkdev}-joined.dtb
 	  APPEND ${append}
 	  # Optionally add: video=1920x1080@60
 	EOF
@@ -123,8 +123,10 @@ fi
 
 if [ ! -d "/boot/dtbos" ]; then
   mkdir -p "/boot/dtbos"
-  cp -vrf /usr/share/buildRKarch/boot/dtbos-${target^^}/${target}-all-*.dts      "/boot/dtbos"
-  cp -vrf /usr/share/buildRKarch/boot/dtbos-${target^^}/${target}-${rkdev}-*.dts "/boot/dtbos"
+  cp -vrf /usr/share/buildRKarch/boot/dtbos-${target^^}/${target}-all-*.dts \
+     "/boot/dtbos" 2>/dev/null
+  cp -vrf /usr/share/buildRKarch/boot/dtbos-${target^^}/${target}-${rkdev}-*.dts \
+     "/boot/dtbos" 2>/dev/null
 fi
 
 # Create .dtbo's
