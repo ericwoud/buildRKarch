@@ -79,10 +79,12 @@ if [[ $@ =~ "--install" ]]; then
 fi
 
 if [[ $@ =~ "--remove" ]]; then
-  rm -vf /boot/dtbs/*/rk3288-openhour.dtb
+  rm -vf /boot/dtbs/rk3288-openhour.dtb
+  rm -vf /boot/dtbs/*/*/*-tojoin.dtb
+  rm -vf /boot/dtbs/*/*/*-joined.dtb
   rm -vf /boot/dtbs/*/*-tojoin.dtb
   rm -vf /boot/dtbs/*/*-joined.dtb
-  rm -vf /boot/dtbos/*
+  rm -vf /boot/dtbos
   exit
 fi
 
@@ -107,7 +109,7 @@ if [[ $@ =~ "--uboot@spi" ]]; then
 fi
 
 # The rest of the script for --dtbs argument
-if [[ $@ =~ "--dtbs" ]] || exit
+[[ $@ =~ "--dtbs" ]] || exit
 
 # Create openhour dtb if possible
 if [ -f "/boot/dtbs/rk3288-miqi.dtb" ]; then
@@ -132,31 +134,24 @@ for bp in $(shopt -s nullglob; echo /boot/dtbos/*.dts); do
   dtc -q -I dts -O dtb -o ${bp/".dts"/".dtbo"} $bp
 done
 
-
-
-
-
-# find . -name "foo*"
-tojoin="/boot/dtbs/${target}-tojoin.dtb"
-joined="/boot/dtbs/${target}-joined.dtb"
-
-for file in $(find . -name "${target}-${rkdev}.dtb"); do
-  cp -vf $file $tojoin
-
-  # Extra fdtput command inside .dts to be executed on the original .dtb
-  for bp in $(shopt -s nullglob; echo /boot/dtbos/*.dts); do
-    cat $bp | grep "//fdtput" | while read -r line ; do
-      echo fdtput $tojoin ${line/"//fdtput"/""}
-           fdtput $tojoin ${line/"//fdtput"/""}
-    done
-  done
-
+# Create joined .dtb
+for file in $(find "/boot/dtbs" -name "${target}-${rkdev}.dtb"); do
+  tojoin=${file/".dtb"/"-tojoin.dtb"}
+  joined=${file/".dtb"/"-joined.dtb"}
   dtbos="$(shopt -s nullglob; echo /boot/dtbos/*.dtbo)"
   if test -n "$dtbos"; then
+    cp -vf $file $tojoin
+    # Extra fdtput command inside .dts to be executed on the original .dtb
+    for bp in $(shopt -s nullglob; echo /boot/dtbos/*.dts); do
+      cat $bp | grep "//fdtput" | while read -r line ; do
+        echo fdtput $tojoin ${line/"//fdtput"/""}
+             fdtput $tojoin ${line/"//fdtput"/""}
+      done
+    done
     fdtoverlay -vi $tojoin -o $joined $dtbos
   else
     echo "No overlay applied!"
-    cp -vf $tojoin $joined
+    cp -vf $file $joined
   fi
 
 done
