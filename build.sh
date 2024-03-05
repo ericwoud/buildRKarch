@@ -23,8 +23,8 @@ ROOT_END_MB=100%                     # Size of root partition
 IMAGE_SIZE_MB=15000                  # Size of image
 IMAGE_FILE="./rockchip.img"          # Name of image
 
-NEEDED_PACKAGES="base hostapd openssh wireless-regdb iproute2 nftables btrfs-progs dosfstools"
-NEEDED_PACKAGES+=' '"dtc mkinitcpio patch sudo evtest parted linux-firmware networkmanager"
+NEEDED_PACKAGES="base openssh wireless-regdb iproute2 nftables btrfs-progs dosfstools\
+ dtc mkinitcpio patch sudo evtest parted linux-firmware networkmanager"
 EXTRA_PACKAGES="vim nano screen"
 PREBUILT_PACKAGES="mmc-utils-git ssh-fix-reboot"
 SCRIPT_PACKAGES="curl ca-certificates udisks2 parted gzip bc btrfs-progs dosfstools"

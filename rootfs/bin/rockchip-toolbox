@@ -12,7 +12,8 @@ if [[ "$rkdev" =~ "@" ]]; then
   rkdev=${rkdev%"@$atfdevice"}
 fi
 
-file="/boot/uboot/u-boot-with-spl-${target}-${rkdev}.bin.xz"
+filexz="/boot/uboot/u-boot-with-spl-${target}-${rkdev}.bin.xz"
+[ ! -f "$filexz" ] && filexz=${filexz/"${target}-rock-"/"${target}-rock"}
 extlinux="/boot/extlinux/extlinux.conf"
 
 append="console=tty1 earlyprintk consoleblank=0 rw rootwait root=PARTLABEL=${partlabelroot}\
@@ -90,21 +91,21 @@ if [[ $@ =~ "--remove" ]]; then
 fi
 
 if [[ $@ =~ "--uboot@root" ]]; then
-  [ ! -f "$file" ] && return
+  [ ! -f "$filexz" ] && exit
   ubootdev="/dev/disk/by-partlabel/${partlabeluboot}"
-  [ ! -L "$ubootdev" ] && return
-  echo "Writing ${file} to $(realpath ${ubootdev})"
+  [ ! -L "$ubootdev" ] && exit
+  echo "Writing ${filexz} to $(realpath ${ubootdev})"
   dd bs=64k of="${ubootdev}" if="/dev/zero" 2>/dev/null
-  xz -dcv "$file" | dd bs=64k of="${ubootdev}"
+  xz -dcv "$filexz" | dd bs=64k of="${ubootdev}"
   sync
 fi
 
 if [[ $@ =~ "--uboot@spi" ]]; then
-  [ ! -f "$file" ] && return
+  [ ! -f "$filexz" ] && exit
   echo "Writing U-Boot to SPI. This may take a while..."
   ubootdev="/dev/mtdblock0"
-  xz -dcv "$file" | dd of="${ubootdev}" bs=512 seek=64    count=1024 # Write SPL max 512 KiB
-  xz -dcv "$file" | dd of="${ubootdev}" bs=512 seek=16384 skip=$((16384-64)) # Write U-Boot
+  xz -dcv "$filexz" | dd of="${ubootdev}" bs=512 seek=64    count=1024 # Write SPL max 512 KiB
+  xz -dcv "$filexz" | dd of="${ubootdev}" bs=512 seek=16384 skip=$((16384-64)) # Write U-Boot
   sync
   exit
 fi
