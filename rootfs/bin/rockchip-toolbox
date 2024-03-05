@@ -111,7 +111,7 @@ if [[ $@ =~ "--uboot@spi" ]]; then
 fi
 
 # The rest of the script for --dtbs argument
-[[ $@ =~ "--dtbs" ]] || exit
+[[ $@ =~ "--dtbs" ]] || exit 0
 
 # Create openhour dtb if possible
 if [ -f "/boot/dtbs/rk3288-miqi.dtb" ]; then
