@@ -13,11 +13,11 @@ REPOURL='ftp://ftp.woudstra.mywire.org/repo/$arch'
 BACKUPREPOURL='https://github.com/ericwoud/buildRKarch/releases/download/repo-$arch'
 
 # Standard erase size, when it cannot be determined (using /dev/sdX cardreader or loopdev)
-SD_ERASE_SIZE_MB=4             # in Mega bytes
+SD_ERASE_SIZE_MB=8                   # in Mega bytes
 
 MINIMAL_SIZE_UBOOT_MB=15             # Minimal size of uboot partition
 SPL_START_KB=32                      # Start of uboot partition
-MINIMAL_SIZE_BOOT_MB=150             # Minimal size of boot partition
+MINIMAL_SIZE_BOOT_MB=500             # Minimal size of boot partition
 ROOT_END_MB=100%                     # Size of root partition
 #ROOT_END_MB=$(( 256*1024  ))        # Size 256GiB
 IMAGE_SIZE_MB=15000                  # Size of image
@@ -51,13 +51,11 @@ case ${target} in
   rk3288)
     arch='armv7h'
     INTERFACENAME="end0"
-    NEEDED_PACKAGES+=' '"linux-armv7"
     PREBUILT_PACKAGES+=' '"${target}-uboot"
     ;;
   rk3588)
     arch='aarch64'
     INTERFACENAME="enP4p65s0"
-    NEEDED_PACKAGES+=' '"linux-rkbsp-joshua-git"
     PREBUILT_PACKAGES+=' '"${target}-uboot-git"
     ;;
   *)
@@ -65,8 +63,20 @@ case ${target} in
     exit
     ;;
 esac
+case ${arch} in
+  armv7h)
+    linuxpkgs=("linux-armv7   Standard Mainline ArchlinuxArm linux package")
+    ;;
+  aarch64)
+    linuxpkgs=("linux-aarch64          Standard Mainline ArchlinuxArm linux package"
+               "linux-rkbsp-joshua-git Modded linux based on rockchip/armbian linux")
+    ;;
+  *)
+    echo "Unknown architecture '${arch}'"
+    exit
+    ;;
+esac
 } 
-
 # End of default configuration values
 
 function finish {
@@ -226,7 +236,7 @@ function rootfs {
   $schroot pacman-key --lsign-key $REPOKEY
   $schroot pacman-key --lsign-key "Arch Linux ARM Build System <builder@archlinuxarm.org>"
   until $schroot pacman -Syyu --needed --noconfirm --overwrite \* pacman-static \
-                        $NEEDED_PACKAGES $EXTRA_PACKAGES $PREBUILT_PACKAGES
+                        $NEEDED_PACKAGES $linuxpkg $EXTRA_PACKAGES $PREBUILT_PACKAGES
   do sleep 2; done
   $schroot useradd --create-home --user-group \
                --groups audio,games,log,lp,optical,power,scanner,storage,video,wheel \
@@ -465,6 +475,11 @@ setupenv # Now that target and atfdevice are known.
 
 if [ "$r" = true ]; then
   echo -e "\nCreate root filesystem\n"
+  PS3="Choose linux package to install: "; COLUMNS=1
+  select linuxpkg in "${linuxpkgs[@]}" "Quit" ; do
+    if (( REPLY > 0 && REPLY <= ${#linuxpkgs[@]} )) ; then break; else exit; fi
+  done
+  linuxpkg=${linuxpkg%% *}
   read -p "Enter ip address for local network (emtpy for default): " lanip
   [ -z "$lanip" ] && lanip=$DEFAULT_IP
   echo "IP = "$lanip
