@@ -63,7 +63,7 @@ if [[ $@ =~ "--extlinux" ]] || [ ! -d $(dirname $extlinux) ]; then
 	  MENU LABEL Archlinux aarch64 linux
 	  LINUX Image
 	  INITRD /initramfs-linux.img
-	  FDT /dtbs/rockchip/${rkdev}-${target}-joined.dtb
+	  FDT /dtbs/rockchip/${target}-${rkdev}-joined.dtb
 	  APPEND ${append}
 	  # Optionally add: video=1920x1080@60
 	EOF
@@ -74,7 +74,7 @@ if [[ $@ =~ "--extlinux" ]] || [ ! -d $(dirname $extlinux) ]; then
 	  MENU LABEL Archlinux aarch64 linux Release Candidate
 	  LINUX Image-rc
 	  INITRD /initramfs-linux-rc.img
-	  FDT /dtbs-rc/rockchip/${rkdev}-${target}-joined.dtb
+	  FDT /dtbs-rc/rockchip/${target}-${rkdev}-joined.dtb
 	  APPEND ${append}
 	  # Optionally add: video=1920x1080@60
 	EOF
