@@ -80,7 +80,7 @@ if [[ $@ =~ "--extlinux" ]] || [ ! -d $(dirname $extlinux) ]; then
 	EOF
   fi
   for folder in $(shopt -s nullglob; echo /lib/modules/*) ; do
-    pkgbase=$(cat $folder/pkgbase)
+    pkgbase=$(cat $folder/pkgbase 2>/dev/null)
     if [ ! -z "$pkgbase" ]; then
       cat <<-EOF | tee -a $extlinux
 	LABEL ${pkgbase}

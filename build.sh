@@ -69,6 +69,7 @@ case ${arch} in
     ;;
   aarch64)
     linuxpkgs=("linux-aarch64          Standard Mainline ArchlinuxArm linux package"
+               "linux-aarch64-rc       Archlinux aarch64 linux Release Candidate"
                "linux-rkbsp-joshua-git Modded linux based on rockchip/armbian linux")
     ;;
   *)
