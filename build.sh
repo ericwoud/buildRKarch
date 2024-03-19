@@ -411,7 +411,7 @@ if [ "$F" = true ]; then
       rkdevs=(evb firefly miqi openhour phycore popmetal rock-pi-n8 tinker tinker vyasa)
       ;;
     rk3588)
-      rkdevs=(rock-5b)
+      rkdevs=(bpi-m7 rock-5b)
       ;;
   esac
   PS3="Choose rockchip device to format image for: "; COLUMNS=1
