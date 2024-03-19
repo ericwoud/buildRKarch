@@ -24,10 +24,11 @@ case ${target} in
     append+=' '"earlyprintk"
     ;;
   rk3588)
-    append+=' '"earlycon=uart8250,mmio32,0xfeb50000 console=ttyS2,1500000n8 irqchip.gicv3_pseudo_nmi=0 switolb=1 coherent_pool=2M"
+    append+=' '"earlyprintk console=ttyS2,1500000n8 irqchip.gicv3_pseudo_nmi=0 switolb=1 coherent_pool=2M"
     ;;
 esac
-
+# earlycon=uart8250,mmio32,0xfeb50000
+# chosen{stdout-path = "serial2:1500000n8";} so just add earlyprintk instead!
 
 if [[ $@ =~ "--extlinux" ]] || [ ! -d $(dirname $extlinux) ]; then
   mkdir -p $(dirname $extlinux)
