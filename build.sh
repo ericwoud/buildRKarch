@@ -69,8 +69,8 @@ case ${arch} in
     ;;
   aarch64)
     linuxpkgs=("linux-aarch64          Standard Mainline ArchlinuxArm linux package"
-               "linux-aarch64-rc       Archlinux aarch64 linux Release Candidate"
-               "linux-rkbsp-joshua-git Modded linux based on rockchip/armbian linux")
+               "linux-aarch64-rk-rc    Mainline linux for RockChip Release Candidate <RECOMMENDED>"
+               "linux-rkbsp-joshua-git Modded rkbsp linux based on rockchip/armbian linux")
     ;;
   *)
     echo "Unknown architecture '${arch}'"
