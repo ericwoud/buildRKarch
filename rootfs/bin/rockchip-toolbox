@@ -28,24 +28,24 @@ case ${target} in
     ;;
 esac
 
-thisarch=$(uname -m)
-if [[ $thisarch =~ "armv7" ]]; then
-  default="linux-armv7"
-elif [[ $thisarch == "aarch64" ]]; then
-  if pacman -Qs '^linux-aarch64-rk-rc$' > /dev/null ; then
-    default="linux-aarch64-rk-rc"
-  elif pacman -Qs '^linux-aarch64$' > /dev/null ; then
-    default="linux-aarch64"
-  elif pacman -Qs '^linux-rkbsp-joshua-git$' > /dev/null ; then
-    default="linux-rkbsp-joshua-git"
-  else
-    default="linux-aarch64-rk-rc"
-    echo "WARNING: default linux package $default not found!"
-  fi
-fi
 
 if [[ $@ =~ "--extlinux" ]] || [ ! -d $(dirname $extlinux) ]; then
   mkdir -p $(dirname $extlinux)
+  thisarch=$(uname -m)
+  if [[ $thisarch =~ "armv7" ]]; then
+    default="linux-armv7"
+  elif [[ $thisarch == "aarch64" ]]; then
+    if pacman -Qs '^linux-aarch64-rk-rc$' > /dev/null ; then
+      default="linux-aarch64-rk-rc"
+    elif pacman -Qs '^linux-aarch64$' > /dev/null ; then
+      default="linux-aarch64"
+    elif pacman -Qs '^linux-rkbsp-joshua-git$' > /dev/null ; then
+      default="linux-rkbsp-joshua-git"
+    else
+      default="linux-aarch64-rk-rc"
+      echo "WARNING: default linux package $default not found!"
+    fi
+  fi
   cat <<-EOF | tee $extlinux
 	DEFAULT ${default}
 	  MENU title U-Boot menu
