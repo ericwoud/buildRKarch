@@ -16,18 +16,22 @@ filexz="/boot/uboot/u-boot-with-spl-${target}-${rkdev}.bin.xz"
 [ ! -f "$filexz" ] && filexz=${filexz/"${target}-rock-"/"${target}-rock"}
 extlinux="/boot/extlinux/extlinux.conf"
 
-append="console=tty1 earlyprintk consoleblank=0 rw rootwait root=PARTLABEL=${partlabelroot}\
+append="console=tty1 consoleblank=0 rw rootwait root=PARTLABEL=${partlabelroot}\
  audit=0 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1"
-append_armv7h=""
-append_aarch64="irqchip.gicv3_pseudo_nmi=0 switolb=1 coherent_pool=2M"
-# RK3588: earlycon=uart8250,mmio32,0xfeb50000 console=ttyS2,1500000n8
+
+case ${target} in
+  rk3288)
+    append+=' '"earlyprintk"
+    ;;
+  rk3588)
+    append+=' '"earlycon=uart8250,mmio32,0xfeb50000 console=ttyS2,1500000n8 irqchip.gicv3_pseudo_nmi=0 switolb=1 coherent_pool=2M"
+    ;;
+esac
 
 thisarch=$(uname -m)
 if [[ $thisarch =~ "armv7" ]]; then
-  append+=' '${append_armv7h}
   default="linux-armv7"
 elif [[ $thisarch == "aarch64" ]]; then
-  append+=' '${append_aarch64}
   if pacman -Qs '^linux-aarch64-rk-rc$' > /dev/null ; then
     default="linux-aarch64-rk-rc"
   elif pacman -Qs '^linux-aarch64$' > /dev/null ; then
