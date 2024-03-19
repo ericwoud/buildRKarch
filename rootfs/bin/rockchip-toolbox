@@ -27,11 +27,11 @@ if [[ $thisarch =~ "armv7" ]]; then
   default="linux-armv7"
 elif [[ $thisarch == "aarch64" ]]; then
   append+=' '${append_aarch64}
-  if pacman -Qs linux-aarch64-rk-rc > /dev/null ; then
+  if pacman -Qs '^linux-aarch64-rk-rc$' > /dev/null ; then
     default="linux-aarch64-rk-rc"
-  elif pacman -Qs linux-aarch64 > /dev/null ; then
+  elif pacman -Qs '^linux-aarch64$' > /dev/null ; then
     default="linux-aarch64"
-  elif pacman -Qs linux-rkbsp-joshua-git > /dev/null ; then
+  elif pacman -Qs '^linux-rkbsp-joshua-git$' > /dev/null ; then
     default="linux-rkbsp-joshua-git"
   else
     default="linux-aarch64-rk-rc"
@@ -47,7 +47,7 @@ if [[ $@ =~ "--extlinux" ]] || [ ! -d $(dirname $extlinux) ]; then
 	  PROMPT 0
 	  TIMEOUT 50
 	EOF
-  if pacman -Qs linux-armv7 > /dev/null ; then
+  if pacman -Qs '^linux-armv7$' > /dev/null ; then
     cat <<-EOF | tee -a $extlinux
 	LABEL linux-armv7
 	  MENU LABEL Archlinux armv7 linux
@@ -57,7 +57,7 @@ if [[ $@ =~ "--extlinux" ]] || [ ! -d $(dirname $extlinux) ]; then
 	  # Optionally add: video=1920x1080@60
 	EOF
   fi
-  if pacman -Qs linux-aarch64 > /dev/null ; then
+  if pacman -Qs '^linux-aarch64$' > /dev/null ; then
     cat <<-EOF | tee -a $extlinux
 	LABEL linux-aarch64
 	  MENU LABEL Archlinux aarch64 linux

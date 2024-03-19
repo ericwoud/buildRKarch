@@ -47,16 +47,15 @@ FSTABBOOT="PARTLABEL=$PARTLABELBOOT /boot vfat   defaults                    0  
 FSTABROOT="PARTLABEL=$PARTLABELROOT /     auto   defaults,noatime,nodiratime 0      0"
 #BACKUPFILE="/run/media/$USER/DATA/${target}-${atfdevice}-rootfs.tar"
 BACKUPFILE="./${target}-${rkdev}-${atfdevice}-rootfs.tar"
+PREBUILT_PACKAGES+=' '"${target}-uboot"
 case ${target} in
   rk3288)
     arch='armv7h'
     INTERFACENAME="end0"
-    PREBUILT_PACKAGES+=' '"${target}-uboot"
     ;;
   rk3588)
     arch='aarch64'
     INTERFACENAME="enP4p65s0"
-    PREBUILT_PACKAGES+=' '"${target}-uboot-git"
     ;;
   *)
     echo "Unknown target '${target}'"
@@ -68,8 +67,8 @@ case ${arch} in
     linuxpkgs=("linux-armv7   Standard Mainline ArchlinuxArm linux package")
     ;;
   aarch64)
-    linuxpkgs=("linux-aarch64          Standard Mainline ArchlinuxArm linux package"
-               "linux-aarch64-rk-rc    Mainline linux for RockChip Release Candidate <RECOMMENDED>"
+    linuxpkgs=("linux-aarch64-rk-rc    Mainline linux for RockChip Release Candidate <RECOMMENDED>"
+               "linux-aarch64          Standard Mainline ArchlinuxArm linux package"
                "linux-rkbsp-joshua-git Modded rkbsp linux based on rockchip/armbian linux")
     ;;
   *)
