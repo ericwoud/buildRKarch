@@ -2,30 +2,26 @@
 
 # Disable suspend at login screen and for all users
 
-kodi_pkgs="kodi-ext-git kodi-ext-git-dev kodi-ext-git-eventclients kodi-ext-git-tools-texturepacker"
-kodi_pkgs+=' '"fstrcmp kodi-standalone-service-git libcrossguid-git libudfread-git"
-kodi_pkgs+=' '"kodi-addon-inputstream-adaptive-git kodi-addon-pvr-hts-git"
-kodi_pkgs+=' '"kodi-addon-script-module-inputstreamhelper"
+groups="gnome xorg"
 
-packages="$kodi_pkgs"
+# KODI PACKAGES
+packages=(kodi-ext-git kodi-ext-git-dev kodi-ext-git-eventclients kodi-ext-git-tools-texturepacker
+ fstrcmp kodi-standalone-service-git libcrossguid-git libudfread-git
+ kodi-addon-inputstream-adaptive-git kodi-addon-pvr-hts-git
+ kodi-addon-script-module-inputstreamhelper)
 
-#check groups
-if ! pacman -Qg gnome &>/dev/null; then packages+=' '"gnome"; fi
-if ! pacman -Qg xorg  &>/dev/null; then packages+=' '"xorg"; fi
+# GENERAL PACKAGES
+packages+=(linux-api-headers mesa-utils dri2to3-git gl4es-git)
 
 # target = first part of partlabel of root partition
 target=$(lsblk -pilno partlabel,type,mountpoint | grep -G 'part /$' | head -n1 | cut -d "-" -f1 | cut -d"@" -f1)
 case $target in
   rk3288)
-    packages+=' '"linux-armv7-headers linux-api-headers"
-    packages+=' '"mesa mesa-utils ffmpeg4.4-v4l2-request-git ffmpeg-v4l2-request-git"
+## ffmpeg4.4-v4l2-request-git 
+    packages+=(linux-armv7-headers         mesa              ffmpeg-v4l2-request-git)
     ;;
   rk3588)
-    packages+=' '" linux-rockchip-rk3588-bin-headers mesa-panfork-git mesa-utils"
-    packages+=' '" vulkan-swrast-panfork-git vulkan-mesa-layers-panfork-git opencl-mesa-panfork-git"
-    packages+=' '" mesa-vdpau-panfork-git libva-mesa-driver-panfork-git"
-    packages+=' '" dri2to3-git gl4es-git libmali-radxa-g610-bin"
-    packages+=' '" mpp-git ffmpeg4.4-mpp ffmpeg-mpp"
+    packages+=(linux-aarch64-rk-rc-headers mesa-panfrost-git ffmpeg-v4l2-request-git)
     ;;
   *)
     echo "Unknown target '${target}'"
@@ -33,7 +29,13 @@ case $target in
     ;;
 esac
 
-until pacman -Syyu --needed --noconfirm $packages
+for g in $groups; do
+  if ! pacman -Qg $g &>/dev/null; then
+    packages+=($g)
+  fi
+done
+
+until pacman -Syyu --needed --noconfirm ${packages[@]}
 do sleep 2; done
 
 install --directory --group=kodi --owner=kodi --mode=750 /var/lib/kodi/.kodi/userdata/keymaps
@@ -58,13 +60,10 @@ done
 
 # From chroot make sure this works, using extra sudo command
 sudo systemctl --force --no-pager reenable gdm
-# or
-#sudo systemctl --force --no-pager reenable gdm
 
 # set makepkg MAKEFLAGS to -j{nr of cpus}
 #sed -i "s/.*#.*MAKEFLAGS.*/MAKEFLAGS=\"-j$(grep ^processor /proc/cpuinfo  | wc -l)\"/" \
 #     /etc/makepkg.conf
-
 
 # About RK3288 graphene package:
 # graphene is custom build with neon diabled. gdm will crash otherwise.

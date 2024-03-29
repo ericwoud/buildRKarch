@@ -1,6 +1,6 @@
 # buildRKarch
 
-** NOTICE: THERE IS MAJOR REWORK, MOVE TO NEW LINUX KERNEL. THINGS MAY NOT WORK **
+** NOTICE: RK3588 HAS BEEN MOVED TO USING MAINLINE KERNEL V4L2_REQUEST AND PANTHOR **
 
 Install a minimal Arch-Linux on Rockchip devices from scratch. Now I started only for RK-3288 and RK-3588 devices.
 
