@@ -38,8 +38,6 @@ if [[ $@ =~ "--extlinux" ]] || [ ! -d $(dirname $extlinux) ]; then
       default="linux-aarch64-rk-rc"
     elif pacman -Qs '^linux-aarch64$' > /dev/null ; then
       default="linux-aarch64"
-    elif pacman -Qs '^linux-rkbsp-joshua-git$' > /dev/null ; then
-      default="linux-rkbsp-joshua-git"
     else
       default="linux-aarch64-rk-rc"
       echo "WARNING: default linux package $default not found!"
