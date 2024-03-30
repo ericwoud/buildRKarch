@@ -3,7 +3,7 @@
 # Disable suspend at login screen and for all users
 
 # GENERAL PACKAGES
-packages=(gnome xorg mesa-utils dri2to3-git gl4es-git ffmpeg-v4l2-request-git)
+packages=(linux-firmware gnome xorg mesa-utils dri2to3-git gl4es-git ffmpeg-v4l2-request-git)
 
 # KODI PACKAGES
 packages+=(kodi-ext-git kodi-ext-git-dev kodi-ext-git-eventclients kodi-ext-git-tools-texturepacker
