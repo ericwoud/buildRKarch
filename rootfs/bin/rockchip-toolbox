@@ -121,7 +121,7 @@ fi
 
 if [[ $@ =~ "--uboot@spi" ]]; then
   ubootdev="/dev/mtdblock0"
-  [ ! -L "$ubootdev" ] && exit
+  [ ! -b "$ubootdev" ] && exit
   if [ -f "$filexz_spi" ]; then
     echo "Writing $(basename $filexz_spi) to SPI. This may take a while..."
     xz -dcv "$filexz_spi" | dd of="${ubootdev}"
