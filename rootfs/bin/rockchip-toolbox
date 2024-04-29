@@ -12,8 +12,6 @@ if [[ "$rkdev" =~ "@" ]]; then
   rkdev=${rkdev%"@$atfdevice"}
 fi
 
-filexz="/boot/uboot/u-boot-with-spl-${target}-${rkdev}.bin.xz"
-[ ! -f "$filexz" ] && filexz=${filexz/"${target}-rock-"/"${target}-rock"}
 extlinux="/boot/extlinux/extlinux.conf"
 
 append="earlyprintk console=tty1 consoleblank=0 rw rootwait root=PARTLABEL=${partlabelroot}\
@@ -101,24 +99,42 @@ if [[ $@ =~ "--remove" ]]; then
   exit
 fi
 
+filexz_sdmmc="/boot/uboot/u-boot-with-spl-${target}-${rkdev}.bin.xz"
+filexz_emmc="/boot/uboot/u-boot-rockchip-${target}-${rkdev}.bin.xz"
+filexz_spi="/boot/uboot/u-boot-rockchip-spi-${target}-${rkdev}.bin.xz"
+[ ! -f "$filexz_sdmmc" ] && filexz_sdmmc=${filexz_sdmmc/"${target}-rock-"/"${target}-rock"}
+[ ! -f "$filexz_emmc" ]  && filexz_emmc=${filexz_emmc/"${target}-rock-"/"${target}-rock"}
+[ ! -f "$filexz_spi" ]   && filexz_spi=${filexz_spi/"${target}-rock-"/"${target}-rock"}
+
 if [[ $@ =~ "--uboot@root" ]]; then
-  [ ! -f "$filexz" ] && exit
   ubootdev="/dev/disk/by-partlabel/${partlabeluboot}"
   [ ! -L "$ubootdev" ] && exit
-  echo "Writing ${filexz} to $(realpath ${ubootdev})"
+  filexz="/doesnotexistanyway"
+  [[ "${rkdev}" == "sdmmc" ]] && filexz="$filexz_sdmmc"
+  [[ "${rkdev}" == "emmc" ]] && filexz="$filexz_emmc"
+  [ ! -f "$filexz" ] && exit
+  echo "Writing $(basename $filexz) to $(realpath ${ubootdev})"
   dd bs=64k of="${ubootdev}" if="/dev/zero" 2>/dev/null
   xz -dcv "$filexz" | dd bs=64k of="${ubootdev}"
   sync
 fi
 
 if [[ $@ =~ "--uboot@spi" ]]; then
-  [ ! -f "$filexz" ] && exit
-  echo "Writing U-Boot to SPI. This may take a while..."
   ubootdev="/dev/mtdblock0"
-  xz -dcv "$filexz" | dd of="${ubootdev}" bs=512 seek=64    count=1024 # Write SPL max 512 KiB
-  xz -dcv "$filexz" | dd of="${ubootdev}" bs=512 seek=16384 skip=$((16384-64)) # Write U-Boot
-  sync
-  exit
+  [ ! -L "$ubootdev" ] && exit
+  if [ -f "$filexz_spi" ]; then
+    echo "Writing $(basename $filexz_spi) to SPI. This may take a while..."
+    xz -dcv "$filexz_spi" | dd of="${ubootdev}"
+    sync
+    exit
+  else # Vendor U-boot uses same file as SD
+    [ ! -f "$filexz_sdmmc" ] && exit
+    echo "Writing $(basename $filexz_sdmmc) to SPI. This may take a while..."
+    xz -dcv "$filexz_sdmmc" | dd of="${ubootdev}" bs=512 seek=64    count=1024 # Write SPL max 512 KiB
+    xz -dcv "$filexz_sdmmc" | dd of="${ubootdev}" bs=512 seek=16384 skip=$((16384-64)) # Write U-Boot
+    sync
+    exit
+  fi
 fi
 
 # The rest of the script for --dtbs argument
