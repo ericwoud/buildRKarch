@@ -110,8 +110,8 @@ if [[ $@ =~ "--uboot@root" ]]; then
   ubootdev="/dev/disk/by-partlabel/${partlabeluboot}"
   [ ! -L "$ubootdev" ] && exit
   filexz="/doesnotexistanyway"
-  [[ "${rkdev}" == "sdmmc" ]] && filexz="$filexz_sdmmc"
-  [[ "${rkdev}" == "emmc" ]] && filexz="$filexz_emmc"
+  [[ "${atfdevice}" == "sdmmc" ]] && filexz="$filexz_sdmmc"
+  [[ "${atfdevice}" == "emmc" ]] && filexz="$filexz_emmc"
   [ ! -f "$filexz" ] && exit
   echo "Writing $(basename $filexz) to $(realpath ${ubootdev})"
   dd bs=64k of="${ubootdev}" if="/dev/zero" 2>/dev/null

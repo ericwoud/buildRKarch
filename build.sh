@@ -346,7 +346,9 @@ function ctrl_c() {
       $sudo kill -s SIGKILL $pp &>/dev/null
     done
   fi
-  exit
+  trap - EXIT
+  finish
+  exit 1
 }
 
 export LC_ALL=C
