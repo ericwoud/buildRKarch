@@ -3,7 +3,7 @@
 # Disable suspend at login screen and for all users
 
 # GENERAL PACKAGES
-packages=(linux-firmware gnome xorg mesa-utils gl4es-git ffmpeg-v4l2-request-git)
+packages=(linux-firmware gnome xorg mesa mesa-utils gl4es-git ffmpeg-v4l2-request-git)
 
 # KODI PACKAGES
 packages+=(kodi-ext-git kodi-ext-git-dev kodi-ext-git-eventclients kodi-ext-git-tools-texturepacker
@@ -17,12 +17,12 @@ case $target in
   rk3288)
     packages+=(linux-armv7-headers
                linux-api-headers
-               mesa)
+              )
     ;;
   rk3588)
     packages+=(linux-aarch64-rk-rc-headers
                linux-aarch64-rk-rc-api-headers
-               mesa-panfrost-git)
+              )
     ;;
   *)
     echo "Unknown target '${target}'"
