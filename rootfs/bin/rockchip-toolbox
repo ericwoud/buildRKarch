@@ -159,8 +159,8 @@ if [ ! -d "/boot/dtbos" ]; then
 fi
 
 # Create .dtbo's
-rm -rf /boot/dtbos/*.dtbo
-for bp in $(shopt -s nullglob; echo /boot/dtbos/*.dts); do
+rm -rf /boot/dtbos/*.dtbo /boot/dtbos/*/*.dtbo
+for bp in $(shopt -s nullglob; echo /boot/dtbos/*.dts /boot/dtbos/*/*.dts); do
   echo "Creating .dtbo from $bp"
   dtc -q -I dts -O dtb -o ${bp/".dts"/".dtbo"} $bp
 done
@@ -169,7 +169,9 @@ done
 for file in $(find "/boot/dtbs" -name "${target}-${rkdev}.dtb"); do
   tojoin=${file/".dtb"/"-tojoin.dtb"}
   joined=${file/".dtb"/"-joined.dtb"}
-  dtbos="$(shopt -s nullglob; echo /boot/dtbos/*.dtbo)"
+  parts=(${file//\// })
+  pkg="${parts[2]}"
+  dtbos="$(shopt -s nullglob; echo /boot/dtbos/*.dtbo /boot/dtbos/${pkg}/*.dtbo)"
   if test -n "$dtbos"; then
     cp -vf $file $tojoin
     # Extra fdtput command inside .dts to be executed on the original .dtb
