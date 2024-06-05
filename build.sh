@@ -3,7 +3,7 @@
 # Set default configuration values
 # These can be overridden by entering them into config.sh
 
-ALARM_MIRROR="http://eu.mirror.archlinuxarm.org"
+ALARM_MIRROR="http://mirror.archlinuxarm.org"
 
 QEMU_ARM="https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-arm-static.tar.gz"
 QEMU_AARCH64="https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static.tar.gz"
@@ -25,7 +25,7 @@ IMAGE_FILE="./rockchip.img"          # Name of image
 
 NEEDED_PACKAGES="base dbus-broker-units openssh wireless-regdb iproute2 nftables btrfs-progs dosfstools\
  dtc mkinitcpio patch sudo evtest parted linux-firmware networkmanager"
-EXTRA_PACKAGES="vim nano screen"
+EXTRA_PACKAGES="nano screen"
 PREBUILT_PACKAGES="mmc-utils-git ssh-fix-reboot"
 SCRIPT_PACKAGES="curl ca-certificates udisks2 parted gzip bc btrfs-progs dosfstools"
 SCRIPT_PACKAGES_ARCHLX="base-devel      uboot-tools  ncurses        openssl"
