@@ -275,12 +275,13 @@ function chrootfs {
 }
 
 function compressimage {
-  rm -f $IMAGE_FILE".xz"
+  rm -f $IMAGE_FILE".xz" $IMAGE_FILE".gz"
   $sudo rm -vrf $rootfsdir/tmp/*
   echo "Type Y + Y:"
   yes | $schroot pacman -Scc
   finish
-  xz --keep --force --verbose $IMAGE_FILE
+  [ "$x" = true ] && xz   --keep --force --verbose $IMAGE_FILE
+  [ "$z" = true ] && dd if=$IMAGE_FILE status=progress | gzip >$IMAGE_FILE".gz"
 }
 
 function backuprootfs {
@@ -357,7 +358,7 @@ export LANGUAGE=C
 
 cd "$(dirname -- "$(realpath -- "${BASH_SOURCE[0]}")")"
 [ $USER = "root" ] && sudo="" || sudo="sudo"
-while getopts ":ralcbxpRAFBM" opt $args; do 
+while getopts ":ralcbxzpRAFBM" opt $args; do
   if [[ "${opt}" == "?" ]]; then echo "Unknown option -$OPTARG"; exit; fi
   declare "${opt}=true"
   ((argcnt++))
@@ -562,7 +563,9 @@ if [ "$p" = true ]; then postinstall &
   mainPID=$! ; wait $mainPID ; unset mainPID
 fi
 [ "$c" = true ] && chrootfs
-[ "$x" = true ] && compressimage
+if [ "$x" = true ] || [ "$z" = true ]; then
+  compressimage
+fi
 
 exit
 
