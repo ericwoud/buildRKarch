@@ -8,8 +8,7 @@ packages=(linux-firmware gnome xorg mesa mesa-utils gl4es-git ffmpeg-v4l2-reques
 # KODI PACKAGES
 packages+=(kodi-ext-git kodi-ext-git-dev kodi-ext-git-eventclients kodi-ext-git-tools-texturepacker
  kodi-addon-inputstream-adaptive-git kodi-addon-pvr-hts-git kodi-addon-script-module-inputstreamhelper
- kodi-standalone-service-git
- fstrcmp libcrossguid-git libudfread-git)
+ kodi-standalone-service-git)
 
 # target = first part of partlabel of root partition
 target=$(lsblk -pilno partlabel,type,mountpoint | grep -G 'part /$' | head -n1 | cut -d "-" -f1 | cut -d"@" -f1)
