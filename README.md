@@ -1,6 +1,6 @@
 # buildRKarch
 
-** NOTICE: RK3588 HAS BEEN MOVED TO USING MAINLINE KERNEL V4L2_REQUEST AND PANTHOR **
+** NOTICE: RK3588 HAS BEEN MOVED TO USING MAINLINE KERNEL, V4L2_REQUEST AND PANTHOR **
 
 Install a minimal Arch-Linux on Rockchip devices from scratch. Now I started only for RK-3288 and RK-3588 devices.
 
@@ -109,7 +109,7 @@ ROOT_END_MB=$(( 256*1024  ))        # Size 256GiB if you want to limit the size
 ```
 Install packages with argument '-a'. Format with the same argument `-F`, but now choose the nvme disk. Install with argument '-r'. Now write U-Boot to the SPI with:
 ```
-rockchip-write-dtbos --uboot@spi
+rockchip-toolbox --uboot@spi
 ```
 U-Boot on SPI is not automatically updated with updating the uboot package, as it is on the SD card. I left it this way by design.
 You still have a uboot partition on the nvme disk, but only the partlabel is being used (for identifying which board).
@@ -137,6 +137,4 @@ Command line options:
 ## Acknowledgments
 
 * [Jernej Škrabec's FFmpeg](https://github.com/jernejsk/FFmpeg)
-* [Jeffy Chen's FFmpeg](https://github.com/JeffyCN/FFmpeg)
 * [Armbian Linux Kernel](https://armbian.com)
-* [Icecream95's mesa-panfork](https://gitlab.com/panfork/mesa)
