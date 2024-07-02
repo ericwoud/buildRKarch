@@ -137,7 +137,6 @@ function formatimage {
     [[ $prompt != "format" ]] && exit
   fi
   $sudo wipefs --all --force "${device}"
-  $sudo dd of="${device}" if=/dev/zero bs=64kiB count=$(($rootstart_kb/64)) status=progress conv=notrunc,fsync
   $sudo sync
   $sudo partprobe "${device}"; udevadm settle
   $sudo parted -s -- "${device}" mklabel gpt
