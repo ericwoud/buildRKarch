@@ -85,8 +85,7 @@ function finish {
   if [ -v rootfsdir ] && [ ! -z "$rootfsdir" ]; then
     $sudo sync
     echo Running exit function to clean up...
-    echo $(mountpoint $rootfsdir)
-    while [[ "$(mountpoint $rootfsdir)" =~ "is a mountpoint" ]]; do
+    while mountpoint -q $rootfsdir; do
       echo "Unmounting...DO NOT REMOVE!"
       $sudo sync
       $sudo umount -R $rootfsdir
