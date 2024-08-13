@@ -150,9 +150,15 @@ function formatimage {
     name 2 $PARTLABELBOOT \
     name 3 $PARTLABELROOT \
     print
-  $sudo partprobe "${device}"; udevadm settle
-  bootdev=$( lsblk -prno partlabel,name $device | grep -P '^rk' | grep -- -boot | cut -d' ' -f2)
-  mountdev=$(lsblk -prno partlabel,name $device | grep -P '^rk' | grep -- -root | cut -d' ' -f2)
+  $sudo partprobe "${device}"; $sudo udevadm settle
+  while 
+    bootdev=$( lsblk -prno partlabel,name $device | grep -P '^bpir' | grep -- -boot | cut -d' ' -f2)
+    [ -z "$bootdev" ]
+  do sleep 0.1; done
+  while 
+    mountdev=$(lsblk -prno partlabel,name $device | grep -P '^bpir' | grep -- -root | cut -d' ' -f2)
+    [ -z "$mountdev" ]
+  do sleep 0.1; done
   waitdev "${bootdev}"
   waitdev "${mountdev}"
   $sudo blkdiscard -fv "${mountdev}"
