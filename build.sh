@@ -56,6 +56,7 @@ case ${target} in
   rk3588)
     arch='aarch64'
     INTERFACENAME="enP4p65s0"
+    [[ $rkdev == "armsom-sige7" ]] && PREBUILT_PACKAGES+=' '"linux-firmware-brcm43752"
     ;;
   *)
     echo "Unknown target '${target}'"
