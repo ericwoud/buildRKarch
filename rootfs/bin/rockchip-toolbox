@@ -151,11 +151,14 @@ if [ -f "/boot/dtbs/rk3288-miqi.dtb" ]; then
 fi
 
 if [ ! -d "/boot/dtbos" ]; then
+(
   mkdir -p "/boot/dtbos"
-  cp -vrf /usr/share/buildRKarch/boot/dtbos-${target^^}/${target}-all-*.dts \
-     "/boot/dtbos" 2>/dev/null
-  cp -vrf /usr/share/buildRKarch/boot/dtbos-${target^^}/${target}-${rkdev}-*.dts \
-     "/boot/dtbos" 2>/dev/null
+  cd /usr/share/buildRKarch/boot/dtbos-${target^^}/
+  cp -vrf            ${target}-all-*.dts      "/boot/dtbos" 2>/dev/null
+  cp -vrf --parent */${target}-all-*.dts      "/boot/dtbos" 2>/dev/null
+  cp -vrf --parent   ${target}-${rkdev}-*.dts "/boot/dtbos" 2>/dev/null
+  cp -vrf --parent */${target}-${rkdev}-*.dts "/boot/dtbos" 2>/dev/null
+)
 fi
 
 # Create .dtbo's
