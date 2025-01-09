@@ -112,10 +112,43 @@ if [[ $@ =~ "--uboot@root" ]]; then
   filexz="/doesnotexistanyway"
   [[ "${atfdevice}" == "sdmmc" ]] && filexz="$filexz_sdmmc"
   [[ "${atfdevice}" == "emmc" ]] && filexz="$filexz_emmc"
+  if [[ "${atfdevice}" == "nvme" ]]; then
+    echo "Write U-Boot to the used medium manually."
+    echo "Use one of the following commands:"
+    echo "  rockchip-toolbox --uboot@spi"
+    echo "  rockchip-toolbox --uboot@emmc"
+    echo "  rockchip-toolbox --uboot@sdmmc"
+  fi
   [ ! -f "$filexz" ] && exit
   echo "Writing $(basename $filexz) to $(realpath ${ubootdev})"
   dd bs=64k of="${ubootdev}" if="/dev/zero" 2>/dev/null
   xz -dcv "$filexz" | dd bs=64k of="${ubootdev}"
+  sync
+fi
+
+if [[ $@ =~ "--uboot@emmc" ]]; then
+  ubootdev="/dev/mmcblk0"
+  [ ! -b "${ubootdev}boot0" ] && ubootdev="/dev/mmcblk1"
+  [ ! -b "${ubootdev}boot0" ] && exit
+  partlabeluboot=$(lsblk -plno partlabel $ubootdev | grep -G '\-uboot$' )
+  ubootdev="/dev/disk/by-partlabel/${partlabeluboot}"
+  [ ! -b "$ubootdev" ] && exit
+  echo "Writing $(basename $filexz_emmc) to $(realpath ${ubootdev})"
+  dd bs=64k of="${ubootdev}" if="/dev/zero" 2>/dev/null
+  xz -dcv "$filexz_emmc" | dd bs=64k of="${ubootdev}"
+  sync
+fi
+
+if [[ $@ =~ "--uboot@sdmmc" ]]; then
+  ubootdev="/dev/mmcblk0"
+  [ -b "${ubootdev}boot0" ] && ubootdev="/dev/mmcblk1"
+  [ -b "${ubootdev}boot0" ] && exit
+  partlabeluboot=$(lsblk -plno partlabel $ubootdev | grep -G '\-uboot$' )
+  ubootdev="/dev/disk/by-partlabel/${partlabeluboot}"
+  [ ! -b "$ubootdev" ] && exit
+  echo "Writing $(basename $filexz_sdmmc) to $(realpath ${ubootdev})"
+  dd bs=64k of="${ubootdev}" if="/dev/zero" 2>/dev/null
+  xz -dcv "$filexz_sdmmc" | dd bs=64k of="${ubootdev}"
   sync
 fi
 
