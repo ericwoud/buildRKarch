@@ -127,6 +127,7 @@ if [[ $@ =~ "--uboot@root" ]]; then
 fi
 
 if [[ $@ =~ "--uboot@emmc" ]]; then
+  [[ $(systemd-detect-virt) != "none" ]] && exit
   ubootdev="/dev/mmcblk0"
   [ ! -b "${ubootdev}boot0" ] && ubootdev="/dev/mmcblk1"
   [ ! -b "${ubootdev}boot0" ] && exit
@@ -140,6 +141,7 @@ if [[ $@ =~ "--uboot@emmc" ]]; then
 fi
 
 if [[ $@ =~ "--uboot@sdmmc" ]]; then
+  [[ $(systemd-detect-virt) != "none" ]] && exit
   ubootdev="/dev/mmcblk0"
   [ -b "${ubootdev}boot0" ] && ubootdev="/dev/mmcblk1"
   [ -b "${ubootdev}boot0" ] && exit
@@ -153,6 +155,7 @@ if [[ $@ =~ "--uboot@sdmmc" ]]; then
 fi
 
 if [[ $@ =~ "--uboot@spi" ]]; then
+  [[ $(systemd-detect-virt) != "none" ]] && exit
   ubootdev="/dev/mtdblock0"
   [ ! -b "$ubootdev" ] && exit
   if [ -f "$filexz_spi" ]; then
