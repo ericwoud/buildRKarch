@@ -316,6 +316,7 @@ function setupqemu {
       until curl -L $QEMU | $sudo tar -xz  -C "/run/buildarch"
       do sleep 2; done
     fi
+    $sudo mkdir -p "/run/binfmt.d"
     echo -n $S1$S2| $sudo tee /run/binfmt.d/05-buildarch-qemu-static.conf >/dev/null
     echo
     $sudo systemctl restart systemd-binfmt.service
@@ -323,7 +324,7 @@ function setupqemu {
 }
 
 function disableqemu {
-  if [ ! -f "/run/binfmt.d/05-buildarch-qemu-static.conf" ]; then
+  if [ -f "/run/binfmt.d/05-buildarch-qemu-static.conf" ]; then
     $sudo rm -f "/run/binfmt.d/05-buildarch-qemu-static.conf" >/dev/null
     $sudo systemctl restart systemd-binfmt.service
   fi
