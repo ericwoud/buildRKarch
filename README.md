@@ -54,11 +54,6 @@ Change directory
 cd buildRKarch
 ```
 
-Install all necessary packages with:
-```
-./build.sh -a
-```
-
 The following commands can also be run with the `-l` switch. In this case an image is created by means of a loop device.
 
 Now format your SD card and create rootfs with:
@@ -118,8 +113,6 @@ You still have a uboot partition on the nvme disk, but only the partlabel is bei
 
 Command line options:
 
-* -a   : Install necessairy packages.
-* -A   : Remove necessairy packages.
 * -F   : Format SD card or image, then setup rootfs (adds -r)
 * -l   : Add this option to use an image-file instead of an SD card
 * -r   : Build RootFS.

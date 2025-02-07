@@ -365,7 +365,7 @@ export LANGUAGE=C
 
 cd "$(dirname -- "$(realpath -- "${BASH_SOURCE[0]}")")"
 [ $USER = "root" ] && sudo="" || sudo="sudo"
-while getopts ":ralcbxzpRAFBM" opt $args; do
+while getopts ":rlcbxzpRFBM" opt $args; do
   if [[ "${opt}" == "?" ]]; then echo "Unknown option -$OPTARG"; exit; fi
   declare "${opt}=true"
   ((argcnt++))
