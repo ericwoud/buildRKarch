@@ -5,9 +5,6 @@
 
 ALARM_MIRROR="http://mirror.archlinuxarm.org"
 
-QEMU_ARM="https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-arm-static.tar.gz"
-QEMU_AARCH64="https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static.tar.gz"
-
 REPOKEY="DD73724DCA27796790D33E98798137154FE1474C"
 REPOURL='ftp://ftp.woudstra.mywire.org/repo/$arch'
 BACKUPREPOURL='https://github.com/ericwoud/buildRKarch/releases/download/repo-$arch'
@@ -66,10 +63,18 @@ esac
 case ${arch} in
   armv7h)
     linuxpkgs=("linux-armv7   Standard Mainline ArchlinuxArm linux package")
+    QEMU="https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-arm-static.tar.gz"
+    QEMUFILE="qemu-arm-static"
+    S1=':qemu-arm:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x28\x00'
+    S2=':\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:/run/buildarch/qemu-arm-static:CF'
     ;;
   aarch64)
     linuxpkgs=("linux-aarch64-rk-rc    Mainline linux for RockChip Release Candidate <RECOMMENDED>"
                "linux-aarch64          Standard Mainline ArchlinuxArm linux package")
+    QEMU="https://github.com/multiarch/qemu-user-static/releases/download/v7.2.0-1/qemu-aarch64-static.tar.gz"
+    QEMUFILE="qemu-aarch64-static"
+    S1=':qemu-aarch64:M::\x7fELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\xb7'
+    S2=':\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff:/run/buildarch/qemu-aarch64-static:CF'
     ;;
   *)
     echo "Unknown architecture '${arch}'"
@@ -102,6 +107,7 @@ function finish {
   fi
   unset loopdev
   [ -v sudoPID ] && kill -TERM $sudoPID
+  disableqemu
 }
 
 function waitdev {
@@ -303,29 +309,24 @@ function restorerootfs {
   fi
 }
 
-function installscript {
-  if [ ! -f "/etc/arch-release" ]; then ### Ubuntu / Debian
-    $sudo apt-get install --yes            $SCRIPT_PACKAGES $SCRIPT_PACKAGES_DEBIAN
-  else
-    $sudo pacman -Syu --needed --noconfirm $SCRIPT_PACKAGES $SCRIPT_PACKAGES_ARCHLX
-  fi
-  # On all linux's
-  if [ $hostarch == "x86_64" ]; then # Script running on x86_64 so install qemu
-    until curl -L $QEMU_ARM     | $sudo tar -xz  -C /usr/local/bin
-    do sleep 2; done
-    until curl -L $QEMU_AARCH64 | $sudo tar -xz  -C /usr/local/bin
-    do sleep 2; done
-    S1=':qemu-arm:M::\x7fELF\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x28\x00'
-    S2=':\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:/usr/local/bin/qemu-arm-static:CF'
-    echo -n $S1$S2| $sudo tee /lib/binfmt.d/05-local-qemu-arm-static.conf
-    echo
-    S1=':qemu-aarch64:M::\x7fELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\xb7'
-    S2=':\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff:/usr/local/bin/qemu-aarch64-static:CF'
-    echo -n $S1$S2| $sudo tee /lib/binfmt.d/05-local-qemu-aarch64-static.conf
+function setupqemu {
+  if [ $hostarch == "x86_64" ]; then # Script running on x86_64 so use qemu
+    if [ ! -f "/run/buildarch/${QEMUFILE}" ]; then
+      $sudo mkdir -p "/run/buildarch"
+      until curl -L $QEMU | $sudo tar -xz  -C "/run/buildarch"
+      do sleep 2; done
+    fi
+    echo -n $S1$S2| $sudo tee /run/binfmt.d/05-buildarch-qemu-static.conf >/dev/null
     echo
     $sudo systemctl restart systemd-binfmt.service
   fi
-  exit
+}
+
+function disableqemu {
+  if [ ! -f "/run/binfmt.d/05-buildarch-qemu-static.conf" ]; then
+    $sudo rm -f "/run/binfmt.d/05-buildarch-qemu-static.conf" >/dev/null
+    $sudo systemctl restart systemd-binfmt.service
+  fi
 }
 
 function removescript {
@@ -395,8 +396,21 @@ echo "Compatible:" $compatible
 hostarch=$(uname -m)
 echo "Host Arch:" $hostarch
 
-[ "$a" = true ] && installscript
-[ "$A" = true ] && removescript
+if [ ! -f "/etc/arch-release" ]; then ### Ubuntu / Debian
+  for package in $SCRIPT_PACKAGES $SCRIPT_PACKAGES_DEBIAN; do 
+    if ! dpkg -l $package >/dev/null; then missing+=" $package"; fi
+  done
+  instcmd="sudo apt-get install $missing"
+else
+  for package in $SCRIPT_PACKAGES $SCRIPT_PACKAGES_ARCHLX; do 
+    if ! pacman -Qi $package >/dev/null; then missing+=" $package"; fi
+  done
+  instcmd="sudo pacman -Syu $missing"
+fi
+if [ ! -z "$missing" ]; then
+  echo -e "\nInstall these packages with command:\n${instcmd}\n"
+  exit
+fi
 
 rootdevice=$(mount | grep -E '\s+on\s+/\s+' | cut -d' ' -f1)
 rootdev=$(lsblk -sprno name ${rootdevice} | tail -2 | head -1)
@@ -548,6 +562,8 @@ if [ "$R" = true ] ; then
   (shopt -s dotglob; $sudo rm -rf $rootfsdir/*)
   exit
 fi
+
+setupqemu
 
 [ ! -d "$rootfsdir/dev" ] && $sudo mkdir $rootfsdir/dev
 $sudo mount --rbind --make-rslave /dev  $rootfsdir/dev # install gnupg needs it
