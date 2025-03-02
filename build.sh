@@ -427,29 +427,31 @@ echo "pkroot=$pkroot , do not use."
 [ "$I" = true ] && source config.sh
 
 if [ "$F" = true ]; then
-  PS3="Choose target SOC to format image for: "; COLUMNS=1
-  select target in "rk3288 SOC" "rk3588 SOC" "Quit" ; do
-    if (( REPLY > 0 && REPLY <= 2 )) ; then break; else exit; fi
-  done
-  target=${target%% *}
-  case ${target} in
-    rk3288)
-      rkdevs=(evb firefly miqi openhour phycore popmetal rock-pi-n8 tinker tinker vyasa)
-      ;;
-    rk3588)
-      rkdevs=(armsom-sige7 rock-5b)
-      ;;
-  esac
-  PS3="Choose rockchip device to format image for: "; COLUMNS=1
-  select rkdev in "${rkdevs[@]}" "Quit" ; do
-    if (( REPLY > 0 && REPLY <= ${#rkdevs[@]} )) ; then break; else exit; fi
-  done
-  rkdev=${rkdev%% *}
-  PS3="Choose atfdevice to format image for: "; COLUMNS=1
-  select atfdevice in "sdmmc SD Card" "nvme  NVME solid state drive" "Quit" ; do
-    if (( REPLY > 0 && REPLY <= 2 )) ; then break; else exit; fi
-  done
-  atfdevice=${atfdevice%% *}
+  if [ "$I" != true ]; then # Non-interactive -lFI or -lrI
+    PS3="Choose target SOC to format image for: "; COLUMNS=1
+    select target in "rk3288 SOC" "rk3588 SOC" "Quit" ; do
+      if (( REPLY > 0 && REPLY <= 2 )) ; then break; else exit; fi
+    done
+    target=${target%% *}
+    case ${target} in
+      rk3288)
+        rkdevs=(evb firefly miqi openhour phycore popmetal rock-pi-n8 tinker tinker vyasa)
+        ;;
+      rk3588)
+        rkdevs=(armsom-sige7 rock-5b)
+        ;;
+    esac
+    PS3="Choose rockchip device to format image for: "; COLUMNS=1
+    select rkdev in "${rkdevs[@]}" "Quit" ; do
+      if (( REPLY > 0 && REPLY <= ${#rkdevs[@]} )) ; then break; else exit; fi
+    done
+    rkdev=${rkdev%% *}
+    PS3="Choose atfdevice to format image for: "; COLUMNS=1
+    select atfdevice in "sdmmc SD Card" "nvme  NVME solid state drive" "Quit" ; do
+      if (( REPLY > 0 && REPLY <= 2 )) ; then break; else exit; fi
+    done
+    atfdevice=${atfdevice%% *}
+  fi
   if [ "$l" = true ]; then
     [ ! -f $IMAGE_FILE ] && touch $IMAGE_FILE
     loopdev=$($sudo losetup --show --find $IMAGE_FILE)
@@ -495,9 +497,10 @@ echo -e "Device=${device}\nTarget=${target}\nRK-device=${rkdev}\nATF-device=${at
 [ -z "${target}" ] && exit
 [ -z "${rkdev}" ] && exit
 [ -z "${atfdevice}" ] && exit
+
 setupenv # Now that target and atfdevice are known.
 
-if [ "$r" = true ]; then
+if [ "$r" = true ] && [ "$I" != true ]; then
   echo -e "\nCreate root filesystem\n"
   PS3="Choose linux package to install: "; COLUMNS=1
   select linuxpkg in "${linuxpkgs[@]}" "Quit" ; do
