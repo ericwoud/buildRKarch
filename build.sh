@@ -363,9 +363,11 @@ export LC_ALL=C
 export LANG=C
 export LANGUAGE=C 
 
+[ -f "config.sh" ] && source config.sh
+
 cd "$(dirname -- "$(realpath -- "${BASH_SOURCE[0]}")")"
 [ $USER = "root" ] && sudo="" || sudo="sudo"
-while getopts ":rlcbxzpRFBM" opt $args; do
+while getopts ":rlcbxzpRFBMI" opt $args; do
   if [[ "${opt}" == "?" ]]; then echo "Unknown option -$OPTARG"; exit; fi
   declare "${opt}=true"
   ((argcnt++))
@@ -421,6 +423,8 @@ echo "rootdev=$rootdev , do not use."
 pkroot=$(lsblk -srno name ${rootdevice} | tail -1)
 echo "pkroot=$pkroot , do not use."
 [ -z $pkroot ] && exit
+
+[ "$I" = true ] && source config.sh
 
 if [ "$F" = true ]; then
   PS3="Choose target SOC to format image for: "; COLUMNS=1
@@ -492,8 +496,6 @@ echo -e "Device=${device}\nTarget=${target}\nRK-device=${rkdev}\nATF-device=${at
 [ -z "${rkdev}" ] && exit
 [ -z "${atfdevice}" ] && exit
 setupenv # Now that target and atfdevice are known.
-# Check if 'config.sh' exists.  If so, source that to override default values.
-[ -f "config.sh" ] && source config.sh
 
 if [ "$r" = true ]; then
   echo -e "\nCreate root filesystem\n"
@@ -513,6 +515,9 @@ if [ "$r" = true ]; then
   [ -z "$dns" ] && dns=$gateway
   echo "DNS = "$dns
 fi
+
+# Check if 'config.sh' exists.  If so, source that to override default values.
+[ -f "config.sh" ] && source config.sh
 
 if [ "$l" = true ] && [ $(stat --printf="%s" $IMAGE_FILE) -eq 0 ]; then
   echo -e "\nCreating image file..."
